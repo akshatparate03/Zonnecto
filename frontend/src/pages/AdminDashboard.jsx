@@ -784,8 +784,7 @@ function UsersSection({ onToast, ready }) {
   const handleDelete = async (userId) => {
     setConfirmDialog({
       title: "Delete User?",
-      message:
-        "This will permanently delete the user and ALL their data. This cannot be undone!",
+      message: "This will permanently delete the user and ALL their data. This cannot be undone!",
       icon: "🗑️",
       confirmLabel: "Delete Permanently",
       confirmColor: "#ef4444",
@@ -910,7 +909,7 @@ function UsersSection({ onToast, ready }) {
             { key: "username", label: "Username" },
             { key: "email", label: "Email" },
             {
-              key: "preferred_gender",
+              key: "gender",
               label: "Gender",
               render: (v) => v || "—",
             },
@@ -1044,19 +1043,22 @@ function UsersSection({ onToast, ready }) {
           >
             {[
               ["Email", userDetail.email],
-              ["Gender", userDetail.preferred_gender || "Not set"],
+              ["Gender", userDetail.gender || "Not set"],
               ["Age", userDetail.age || "Not set"],
-              ["Email Verified", userDetail.email_verified ? "Yes" : "No"],
-              ["Plan", userDetail.preference_unlocked > 0 ? "Premium" : "Free"],
+              ["Plan", userDetail.is_premium ? "Premium" : "Free"],
               ["Daily Matches Used", userDetail.daily_matches_used],
-              ["Referral Count", userDetail.referral_count],
               [
                 "Joined",
                 userDetail.created_at
                   ? new Date(userDetail.created_at).toLocaleString()
                   : "—",
               ],
-              ["Interests", userDetail.interests || "None"],
+              [
+                "Interests",
+                userDetail.interests
+                  ? userDetail.interests.split(",").map(s => s.trim()).join(", ")
+                  : "None"
+              ],
             ].map(([k, v]) => (
               <div key={k}>
                 <div
@@ -1285,8 +1287,7 @@ function ChatsSection({ onToast, ready }) {
   const [messages, setMessages] = useState(null);
   const [activeChat, setActiveChat] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState(null);
-  const API_BASE_URL =
-    import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
   useEffect(() => {
     if (!ready) return; // ✅ wait for auth token to be ready
@@ -1322,8 +1323,7 @@ function ChatsSection({ onToast, ready }) {
   const deleteChat = async (chatId) => {
     setConfirmDialog({
       title: "Delete Chat?",
-      message:
-        "This will permanently delete this chat room and ALL its messages.",
+      message: "This will permanently delete this chat room and ALL its messages.",
       icon: "🗑️",
       confirmLabel: "Delete Chat",
       confirmColor: "#ef4444",
@@ -1502,7 +1502,7 @@ function ChatsSection({ onToast, ready }) {
                       wordBreak: "break-word",
                     }}
                   >
-                    {m.message_type === "IMAGE" || m.media_url ? (
+                    {(m.message_type === "IMAGE" || m.media_url) ? (
                       <img
                         src={`${API_BASE_URL}${m.media_url || m.content}`}
                         alt="shared image"
@@ -1514,16 +1514,10 @@ function ChatsSection({ onToast, ready }) {
                           display: "block",
                           cursor: "pointer",
                         }}
-                        onClick={() =>
-                          window.open(
-                            `${API_BASE_URL}${m.media_url || m.content}`,
-                            "_blank",
-                          )
-                        }
+                        onClick={() => window.open(`${API_BASE_URL}${m.media_url || m.content}`, "_blank")}
                         onError={(e) => {
                           e.target.style.display = "none";
-                          e.target.nextSibling &&
-                            (e.target.nextSibling.style.display = "block");
+                          e.target.nextSibling && (e.target.nextSibling.style.display = "block");
                         }}
                       />
                     ) : (
@@ -1551,8 +1545,7 @@ function ReportsSection({ onToast, ready }) {
   const [banReason, setBanReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState(null);
-  const API_BASE_URL =
-    import.meta.env.VITE_API_URL || "http://localhost:8080/api";
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
 
   const load = useCallback(() => {
     if (!ready) return;
@@ -1765,33 +1758,13 @@ function ReportsSection({ onToast, ready }) {
               >
                 🚨 REPORTED MESSAGE
               </div>
-              <div
-                style={{
-                  color: "#fca5a5",
-                  fontSize: "0.85rem",
-                  wordBreak: "break-word",
-                }}
-              >
-                {selected.message_type === "IMAGE" ||
-                (selected.message_content &&
-                  selected.message_content.startsWith("/uploads")) ? (
+              <div style={{ color: "#fca5a5", fontSize: "0.85rem", wordBreak: "break-word" }}>
+                {selected.message_type === "IMAGE" || (selected.message_content && selected.message_content.startsWith("/uploads")) ? (
                   <img
                     src={`${API_BASE_URL}${selected.message_content}`}
                     alt="reported image"
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: 200,
-                      borderRadius: 8,
-                      border: "1px solid rgba(239,68,68,0.3)",
-                      display: "block",
-                      cursor: "pointer",
-                    }}
-                    onClick={() =>
-                      window.open(
-                        `${API_BASE_URL}${selected.message_content}`,
-                        "_blank",
-                      )
-                    }
+                    style={{ maxWidth: "100%", maxHeight: 200, borderRadius: 8, border: "1px solid rgba(239,68,68,0.3)", display: "block", cursor: "pointer" }}
+                    onClick={() => window.open(`${API_BASE_URL}${selected.message_content}`, "_blank")}
                   />
                 ) : (
                   selected.message_content
@@ -1862,26 +1835,12 @@ function ReportsSection({ onToast, ready }) {
                         wordBreak: "break-word",
                       }}
                     >
-                      {m.message_type === "IMAGE" ||
-                      (m.content && m.content.startsWith("/uploads")) ? (
+                      {m.message_type === "IMAGE" || (m.content && m.content.startsWith("/uploads")) ? (
                         <img
                           src={`${API_BASE_URL}${m.media_url || m.content}`}
                           alt="image"
-                          style={{
-                            maxWidth: 120,
-                            maxHeight: 80,
-                            borderRadius: 6,
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            display: "inline-block",
-                            verticalAlign: "middle",
-                            cursor: "pointer",
-                          }}
-                          onClick={() =>
-                            window.open(
-                              `${API_BASE_URL}${m.media_url || m.content}`,
-                              "_blank",
-                            )
-                          }
+                          style={{ maxWidth: 120, maxHeight: 80, borderRadius: 6, border: "1px solid rgba(255,255,255,0.1)", display: "inline-block", verticalAlign: "middle", cursor: "pointer" }}
+                          onClick={() => window.open(`${API_BASE_URL}${m.media_url || m.content}`, "_blank")}
                         />
                       ) : (
                         m.content
@@ -2062,8 +2021,8 @@ function BansSection({ onToast, ready }) {
         setConfirmDialog(null);
         try {
           await api.post(`/users/${userId}/unban`);
-          onToast("Unbanned", "success");
-          load();
+      onToast("Unbanned", "success");
+      load();
         } catch (e) {
           onToast("Failed", "error");
         }
@@ -2428,8 +2387,8 @@ function BroadcastSection({ onToast }) {
             color: "rgba(255,255,255,0.4)",
           }}
         >
-          Send a real-time persistent notification to all currently online users
-          via WebSocket. Users can dismiss it manually.
+          Send a real-time persistent notification to all currently online users via
+          WebSocket. Users can dismiss it manually.
         </div>
         <textarea
           value={message}

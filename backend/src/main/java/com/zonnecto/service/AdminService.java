@@ -51,7 +51,8 @@ public class AdminService {
                 stats.put("activeUsersOnline", (long) onlineUserService.getOnlineCount());
 
                 stats.put("todayNewRegistrations", safe(jdbcTemplate.queryForObject(
-                                "SELECT COUNT(*) FROM users WHERE DATE(created_at) = CURRENT_DATE", Long.class)));
+                                "SELECT COUNT(*) FROM users WHERE created_at >= CURRENT_DATE AND created_at < CURRENT_DATE + INTERVAL '1 day'",
+                                Long.class)));
 
                 // PostgreSQL: email_verified is boolean — use = true
                 try {
@@ -72,9 +73,9 @@ public class AdminService {
                 }
                 try {
                         stats.put("maleUsers", safe(jdbcTemplate.queryForObject(
-                                        "SELECT COUNT(*) FROM users WHERE preferred_gender = 'Male'", Long.class)));
+                                        "SELECT COUNT(*) FROM users WHERE LOWER(gender) = 'male'", Long.class)));
                         stats.put("femaleUsers", safe(jdbcTemplate.queryForObject(
-                                        "SELECT COUNT(*) FROM users WHERE preferred_gender = 'Female'", Long.class)));
+                                        "SELECT COUNT(*) FROM users WHERE LOWER(gender) = 'female'", Long.class)));
                 } catch (Exception e) {
                         stats.put("maleUsers", 0L);
                         stats.put("femaleUsers", 0L);
@@ -86,7 +87,8 @@ public class AdminService {
                 stats.put("totalMessages", safe(jdbcTemplate.queryForObject(
                                 "SELECT COUNT(*) FROM messages", Long.class)));
                 stats.put("todayMessages", safe(jdbcTemplate.queryForObject(
-                                "SELECT COUNT(*) FROM messages WHERE DATE(timestamp) = CURRENT_DATE", Long.class)));
+                                "SELECT COUNT(*) FROM messages WHERE timestamp >= CURRENT_DATE AND timestamp < CURRENT_DATE + INTERVAL '1 day'",
+                                Long.class)));
 
                 // Reports
                 stats.put("pendingReports", safe(jdbcTemplate.queryForObject(
@@ -134,6 +136,7 @@ public class AdminService {
 
                 return jdbcTemplate.queryForList(
                                 "SELECT u.id, u.email, u.username, "
+                                                + "COALESCE(u.gender, '') as gender, "
                                                 + "COALESCE(u.preferred_gender, '') as preferred_gender, "
                                                 + "COALESCE(u.age, '') as age, "
                                                 + "COALESCE(u.interests, '') as interests, "
@@ -245,7 +248,7 @@ public class AdminService {
 
         public List<Map<String, Object>> getChatMessages(Long chatRoomId) {
                 return jdbcTemplate.queryForList(
-                                "SELECT m.id, m.content, m.media_url, m.message_type, m.timestamp, m.is_reported, "
+                                "SELECT m.id, m.content, m.message_type, m.timestamp, m.is_reported, "
                                                 + "u.username as sender_name, u.email as sender_email "
                                                 + "FROM messages m JOIN users u ON u.id = m.sender_id "
                                                 + "WHERE m.chat_room_id = ? ORDER BY m.timestamp ASC",
@@ -484,7 +487,7 @@ public class AdminService {
         public List<Map<String, Object>> getChatMessagesByRoom(Long chatRoomId) {
                 return jdbcTemplate.queryForList(
                                 "SELECT m.id, m.sender_id, u.username as sender_username, "
-                                                + "m.content, m.media_url, m.message_type, m.timestamp, m.is_reported "
+                                                + "m.content, m.message_type, m.timestamp, m.is_reported "
                                                 + "FROM messages m "
                                                 + "JOIN users u ON u.id = m.sender_id "
                                                 + "WHERE m.chat_room_id = ? "
