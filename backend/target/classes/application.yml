@@ -3,9 +3,9 @@ spring:
     name: zonnecto-backend
 
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://ep-jolly-hill-ao9jz7g5-pooler.c-2.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require}
-    username: ${DB_USER:neondb_owner}
-    password: ${DB_PASSWORD:npg_3mqPXzNcpK6E}
+    url: "jdbc:postgresql://ep-proud-shape-aojawdi5-pooler.c-2.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    username: neondb_owner
+    password: npg_Sdavk5P6OiuX
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 60000
@@ -28,11 +28,12 @@ spring:
 
   data:
     redis:
-      host: localhost
+      host: amazed-guinea-119983.upstash.io
       port: 6379
+      password: gQAAAAAAAdSvAAIgcDFmMDZmMGZmY2ZiMjI0OGEyODEyMzQ2OTFmNDMyYTFmYw
       timeout: 60000
       ssl:
-        enabled: false
+        enabled: true
 
   servlet:
     multipart:
