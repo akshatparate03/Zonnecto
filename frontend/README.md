@@ -31,7 +31,3 @@ git add .
 git commit -m "SEO Optimized"
 git pull origin main
 git push origin main
-
-# Razorpay Integration
-Test API Key = rzp_test_SmYLU6W8NbDdEc
-Test Secret Key = wfdf51zCkooabhRDL3CXVHbW

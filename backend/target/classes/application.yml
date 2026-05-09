@@ -3,14 +3,14 @@ spring:
     name: zonnecto-backend
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/zonnecto?sslmode=disable
-    username: postgres
-    password: postgres
+    url: ${DATABASE_URL:jdbc:postgresql://ep-jolly-hill-ao9jz7g5-pooler.c-2.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require}
+    username: ${DB_USER:neondb_owner}
+    password: ${DB_PASSWORD:npg_3mqPXzNcpK6E}
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 60000
       initialization-fail-timeout: 60000
-      maximum-pool-size: 5
+      maximum-pool-size: 3
       minimum-idle: 1
       idle-timeout: 300000
       max-lifetime: 600000
