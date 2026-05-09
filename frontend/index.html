@@ -4,28 +4,201 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zonnecto</title>
 
-  <!-- FAVICONS -->
+  <!-- ══════════════════════════════════════════
+       PRIMARY SEO
+  ═══════════════════════════════════════════ -->
+  <title>Zonnecto — Free Anonymous Chat with Strangers Online</title>
+  <meta name="description"
+    content="Zonnecto is a free anonymous real-time chat platform. Connect instantly with strangers, make friends, and chat safely. Smart matchmaking powered by WebSocket for zero-lag messaging." />
+  <meta name="keywords"
+    content="anonymous chat, chat with strangers, random chat, free chat app, online chat, real-time chat, stranger chat, zonnecto" />
+  <meta name="author" content="Akshat Parate" />
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+  <meta name="googlebot" content="index, follow" />
+
+  <!-- Canonical — apni deployed domain se replace karna -->
+  <link rel="canonical" href="https://zonnecto.netlify.app/" />
+
+  <!-- ══════════════════════════════════════════
+       OPEN GRAPH (Facebook, WhatsApp, LinkedIn)
+  ═══════════════════════════════════════════ -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Zonnecto" />
+  <meta property="og:title" content="Zonnecto — Free Anonymous Chat with Strangers Online" />
+  <meta property="og:description"
+    content="Connect instantly with strangers worldwide. Real-time anonymous chat, friend system, and smart matchmaking — all in one platform. Free forever." />
+  <meta property="og:url" content="https://zonnecto.netlify.app/" />
+  <meta property="og:image" content="https://zonnecto.netlify.app/Zonnecto%20Banner.jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Zonnecto — Anonymous Chat Platform" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- ══════════════════════════════════════════
+       TWITTER CARD
+  ═══════════════════════════════════════════ -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Zonnecto — Free Anonymous Chat with Strangers Online" />
+  <meta name="twitter:description"
+    content="Connect instantly with strangers worldwide. Real-time anonymous chat, friend system, and smart matchmaking — free forever." />
+  <meta name="twitter:image" content="https://zonnecto.netlify.app/Zonnecto%20Banner.jpeg" />
+  <meta name="twitter:image:alt" content="Zonnecto — Anonymous Chat Platform" />
+  <meta name="twitter:site" content="@zonnecto" />
+  <meta name="twitter:creator" content="@zonnecto" />
+
+  <!-- ══════════════════════════════════════════
+       STRUCTURED DATA — WebApplication
+  ═══════════════════════════════════════════ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Zonnecto",
+    "url": "https://zonnecto.netlify.app",
+    "description": "Free anonymous real-time chat platform. Connect with strangers instantly using smart matchmaking, WebSocket messaging, and a complete friend system.",
+    "applicationCategory": "CommunicationApplication",
+    "operatingSystem": "Web Browser",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "featureList": [
+      "Anonymous random chat with strangers",
+      "Real-time WebSocket messaging",
+      "Smart gender and age matchmaking",
+      "Friend system with persistent chats",
+      "Profile customization",
+      "Safe moderated environment"
+    ],
+    "screenshot": "https://zonnecto.netlify.app/Zonnecto%20Banner.jpeg",
+    "creator": {
+      "@type": "Person",
+      "name": "Akshat Parate",
+      "url": "https://akshatparate.netlify.app"
+    },
+    "inLanguage": "en",
+    "isAccessibleForFree": true
+  }
+  </script>
+
+  <!-- ══════════════════════════════════════════
+       STRUCTURED DATA — Organization
+  ═══════════════════════════════════════════ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Zonnecto",
+    "url": "https://zonnecto.netlify.app",
+    "logo": "https://zonnecto.netlify.app/Zonnecto.svg",
+    "sameAs": [
+      "https://www.instagram.com/zonnecto",
+      "https://youtube.com/@zonnecto",
+      "https://t.me/Zonnecto",
+      "https://github.com/akshatparate03/Zonnecto"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "email": "zonnecto@gmail.com",
+      "contactType": "customer support"
+    }
+  }
+  </script>
+
+  <!-- ══════════════════════════════════════════
+       STRUCTURED DATA — FAQPage
+  ═══════════════════════════════════════════ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is Zonnecto?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Zonnecto is a free anonymous real-time chat platform that connects strangers instantly using smart matchmaking, WebSocket messaging, and a complete friend system in a safe, moderated environment."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is Zonnecto free to use?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, Zonnecto is completely free. You can chat anonymously with strangers, make friends, and use most features without any cost."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is Zonnecto safe and anonymous?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Zonnecto never reveals your identity in anonymous chats. Your email and personal details are never shared with other users. The platform has an active moderation and ban system."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does random matching work on Zonnecto?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Zonnecto uses a queue-based system to instantly match you with a stranger based on your preferences like gender and age range. Matching typically takes under 5 seconds."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- ══════════════════════════════════════════
+       GOOGLE SITE VERIFICATION
+       (Google Search Console se milega)
+  ═══════════════════════════════════════════ -->
+  <meta name="google-site-verification" content="YAHAN_APNA_VERIFICATION_CODE_DALNA" />
+
+  <!-- ══════════════════════════════════════════
+       FAVICONS
+  ═══════════════════════════════════════════ -->
   <link rel="icon" type="image/svg+xml" href="/Zonnecto.svg">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png">
   <link rel="manifest" href="/site.webmanifest">
 
+  <!-- ══════════════════════════════════════════
+       PERFORMANCE & SECURITY
+  ═══════════════════════════════════════════ -->
   <meta name="theme-color" content="#070710" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="format-detection" content="telephone=no" />
 
-  <!-- Fonts -->
+  <!-- Fonts preconnect -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&family=Syne:wght@700;800&display=swap"
     rel="stylesheet" />
+
+  <!-- Preload hero banner for LCP improvement -->
+  <link rel="preload" href="/Zonnecto%20Banner.jpeg" as="image" />
 </head>
 
 <body>
   <div id="root"></div>
+
+  <!-- Noscript fallback — crawlers ke liye -->
+  <noscript>
+    <div style="font-family:sans-serif;max-width:600px;margin:40px auto;padding:20px;text-align:center;">
+      <h1>Zonnecto — Anonymous Chat Platform</h1>
+      <p>Connect with strangers instantly. Free, anonymous, real-time chat with smart matchmaking.</p>
+      <p>Please enable JavaScript to use Zonnecto.</p>
+      <p><a href="mailto:zonnecto@gmail.com">zonnecto@gmail.com</a></p>
+    </div>
+  </noscript>
+
   <script type="module" src="/src/main.jsx"></script>
 </body>
 

@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /premium
+Allow: /contact
+Allow: /privacy
+Allow: /terms
+Allow: /disclaimer
+
+# Auth aur protected pages crawl nahi hone chahiye
+Disallow: /chat
+Disallow: /friends
+Disallow: /admin
+Disallow: /login
+Disallow: /register
+Disallow: /reset-password
+Disallow: /forgot-password
+
+# Sitemap location
+Sitemap: https://zonnecto.netlify.app/sitemap.xml

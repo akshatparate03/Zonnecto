@@ -1,10 +1,11 @@
 {
   "name": "Zonnecto",
   "short_name": "Zonnecto",
+  "description": "Free anonymous real-time chat with strangers",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#070710",
+  "theme_color": "#070710",
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
