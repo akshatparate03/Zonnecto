@@ -23,6 +23,11 @@ cd frontend
 npm run dev
 npm install
 
+# Mobile Setup Commonds
+
+cd mobile
+npm start
+
 # GitHub Push Commonds
 
 git status
