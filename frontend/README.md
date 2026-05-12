@@ -26,6 +26,11 @@ npm install
 # Mobile Setup Commonds
 
 cd mobile
+npx rimraf node_modules
+del package-lock.json
+npm install --legacy-peer-deps
+npx expo start --clear
+npm install
 npm start
 
 # GitHub Push Commonds
