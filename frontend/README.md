@@ -30,8 +30,8 @@ npx rimraf node_modules
 del package-lock.json
 npm install --legacy-peer-deps
 npx expo install expo-linking
-npx expo start --clear
 npm install
+npx expo start --clear
 npm start
 
 # GitHub Push Commonds

@@ -7,16 +7,14 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "scheme": "zonnecto",
-    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#070710"
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.zonnecto.app",
-      "buildNumber": "1"
+      "bundleIdentifier": "com.zonnecto.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +22,6 @@
         "backgroundColor": "#070710"
       },
       "package": "com.zonnecto.app",
-      "versionCode": 1,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
