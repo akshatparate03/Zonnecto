@@ -1,3 +1,5 @@
+// app/_layout.js — Root Layout
+import "fast-text-encoding"; // TextDecoder polyfill for @stomp/stompjs
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -26,8 +28,14 @@ export default function RootLayout() {
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="(auth)" />
               <Stack.Screen name="chat" />
-              <Stack.Screen name="premium" />
-              <Stack.Screen name="profile-edit" />
+              <Stack.Screen
+                name="premium"
+                options={{ animation: "slide_from_bottom" }}
+              />
+              <Stack.Screen
+                name="profile-edit"
+                options={{ animation: "slide_from_bottom" }}
+              />
             </Stack>
             <Toast config={toastConfig} />
           </WebSocketProvider>

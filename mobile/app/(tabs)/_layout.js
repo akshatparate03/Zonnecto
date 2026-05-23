@@ -1,22 +1,19 @@
-// app/(tabs)/_layout.js
-import { Tabs } from 'expo-router';
-import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../../src/constants/theme';
+// app/(tabs)/_layout.js — Bottom Tab Navigator (exact website style)
+import { Tabs } from "expo-router";
+import { View, Text, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
+import { Platform } from "react-native";
+import { COLORS, RADIUS } from "../../src/constants/theme";
 
-function TabIcon({ name, focused, badge }) {
+function TabIcon({ name, focused }) {
   return (
     <View style={styles.iconWrap}>
       <Ionicons
         name={focused ? name : `${name}-outline`}
-        size={24}
+        size={23}
         color={focused ? COLORS.purplePale : COLORS.textMuted}
       />
-      {badge > 0 && (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{badge > 99 ? '99+' : badge}</Text>
-        </View>
-      )}
     </View>
   );
 }
@@ -27,6 +24,14 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: styles.tabBar,
+        tabBarBackground: () =>
+          Platform.OS === "ios" ? (
+            <BlurView
+              intensity={80}
+              tint="dark"
+              style={StyleSheet.absoluteFill}
+            />
+          ) : null,
         tabBarActiveTintColor: COLORS.purplePale,
         tabBarInactiveTintColor: COLORS.textMuted,
         tabBarLabelStyle: styles.tabLabel,
@@ -36,29 +41,37 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} />,
+          title: "Home",
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="home" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="match"
         options={{
-          title: 'Match',
-          tabBarIcon: ({ focused }) => <TabIcon name="flash" focused={focused} />,
+          title: "Match",
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="flash" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="friends"
         options={{
-          title: 'Friends',
-          tabBarIcon: ({ focused }) => <TabIcon name="people" focused={focused} />,
+          title: "Friends",
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="people" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
-          tabBarIcon: ({ focused }) => <TabIcon name="person" focused={focused} />,
+          title: "Profile",
+          tabBarIcon: ({ focused }) => (
+            <TabIcon name="person" focused={focused} />
+          ),
         }}
       />
     </Tabs>
@@ -67,20 +80,23 @@ export default function TabsLayout() {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: 'rgba(10,8,25,0.98)',
+    position: "absolute",
+    backgroundColor:
+      Platform.OS === "ios" ? "transparent" : "rgba(7,7,16,0.97)",
     borderTopWidth: 1,
-    borderTopColor: 'rgba(139,92,246,0.15)',
+    borderTopColor: "rgba(139,92,246,0.14)",
     height: 60,
     paddingBottom: 8,
     paddingTop: 6,
+    elevation: 0,
   },
-  tabLabel: { fontSize: 11, fontWeight: '600', marginTop: -2 },
-  iconWrap: { alignItems: 'center', justifyContent: 'center' },
-  badge: {
-    position: 'absolute', top: -4, right: -8,
-    backgroundColor: COLORS.red, borderRadius: 10,
-    minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: 3,
+  tabLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    marginTop: -2,
   },
-  badgeText: { color: '#fff', fontSize: 9, fontWeight: '700' },
+  iconWrap: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });

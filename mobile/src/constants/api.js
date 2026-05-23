@@ -1,7 +1,7 @@
 // src/constants/api.js
 
 // Change this to your deployed backend URL when releasing
-export const API_BASE_URL = 'http://10.37.223.86:8080/api';
+export const API_BASE_URL = 'http://10.147.217.86:8080/api';
 // For local dev: 'http://192.168.x.x:8080/api' (use your PC's local IP, not localhost)
 
 export const WS_URL = API_BASE_URL.replace('/api', '/api/ws/chat');

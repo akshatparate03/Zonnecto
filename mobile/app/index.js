@@ -1,4 +1,4 @@
-// app/index.js — Entry point, redirects to tabs
+// app/index.js — Entry redirect
 import { Redirect } from "expo-router";
 
 export default function Index() {

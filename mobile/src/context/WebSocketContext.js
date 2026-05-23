@@ -1,5 +1,6 @@
 // src/context/WebSocketContext.js
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import 'text-encoding';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import axios from 'axios';

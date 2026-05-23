@@ -328,7 +328,7 @@ export default function Disclaimer() {
 
           <div className="disc-footer-note">
             This disclaimer was last updated in 2026. For legal inquiries,
-            contact us at <a href="mailto:zonnecto@gmail.com">zonnecto.com</a>.
+            contact us at <a href="mailto:zonnecto@gmail.com">zonnecto@gmail.com</a>.
             By continuing to use Zonnecto, you agree to be bound by this
             disclaimer and our <a href="/terms">Terms & Conditions</a> and{" "}
             <a href="/privacy">Privacy Policy</a>.
