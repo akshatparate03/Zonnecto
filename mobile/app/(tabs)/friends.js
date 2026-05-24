@@ -1,5 +1,5 @@
 // app/(tabs)/friends.js — Friends Screen (exact website Friends.jsx match)
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -8,20 +8,368 @@ import {
   TouchableOpacity,
   TextInput,
   RefreshControl,
+  KeyboardAvoidingView,
+  Platform,
+  Dimensions,
+  Alert,
+  Modal,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import { useAuth } from "../../src/context/AuthContext";
+import { useWebSocket } from "../../src/context/WebSocketContext";
 import { COLORS, SPACING, RADIUS } from "../../src/constants/theme";
 import { ZnDialog } from "../../src/components/ZnComponents";
 import { API_BASE_URL } from "../../src/constants/api";
 import Toast from "react-native-toast-message";
 
+const { width } = Dimensions.get("window");
 const API_IMG = API_BASE_URL.replace("/api", "");
+
+// ─── Friend Chat Room — Issue 7 ───────────────────────────────────────────────
+function FriendChatRoom({
+  user,
+  chatRoomId,
+  friendId,
+  friendUsername,
+  onClose,
+}) {
+  const { subscribe, send, connected } = useWebSocket();
+  const insets = useSafeAreaInsets();
+  const [messages, setMessages] = useState([]);
+  const [inputText, setInputText] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [chatRoom, setChatRoom] = useState(null);
+  const flatRef = useRef(null);
+  const token = user?.token;
+  const headers = { Authorization: `Bearer ${token}` };
+
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
+  useEffect(() => {
+    if (!chatRoomId || !connected) return;
+    const myId = Number(user?.userId);
+    const u1 = subscribe(`/topic/chat/${chatRoomId}`, (msg) => {
+      try {
+        const d = JSON.parse(msg.body);
+        if (d.id)
+          setMessages((prev) =>
+            prev.find((m) => m.id === d.id) ? prev : [...prev, d],
+          );
+        setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100);
+      } catch {}
+    });
+    send(`/app/chat/${chatRoomId}/online`, {
+      userId: myId,
+      chatRoomId: Number(chatRoomId),
+    });
+    return () => {
+      u1();
+      send(`/app/chat/${chatRoomId}/offline`, {
+        userId: myId,
+        chatRoomId: Number(chatRoomId),
+      });
+    };
+  }, [chatRoomId, connected]);
+
+  const fetchMessages = async () => {
+    setLoading(true);
+    try {
+      const mr = await axios.get(
+        `${API_BASE_URL}/chat/messages/${chatRoomId}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setMessages([...mr.data].reverse());
+    } catch {}
+    setLoading(false);
+  };
+
+  const sendMsg = useCallback(() => {
+    if (!inputText.trim() || !connected) return;
+    send(`/app/chat/${chatRoomId}`, {
+      senderId: Number(user?.userId),
+      recipientId: Number(friendId),
+      content: inputText.trim(),
+      messageType: "TEXT",
+    });
+    setInputText("");
+  }, [inputText, chatRoomId, connected, friendId]);
+
+  const handleRemove = () => {
+    Alert.alert(
+      "Remove Friend?",
+      `${friendUsername} will be removed from your friends.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await axios.delete(`${API_BASE_URL}/friends/remove/${friendId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              Alert.alert("Removed", "Friend removed successfully.");
+              onClose();
+            } catch {
+              Alert.alert("Error", "Failed to remove friend.");
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  const handleBlock = () => {
+    Alert.alert(`Block ${friendUsername}?`, "They won't be matched with you.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Block",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await axios.post(
+              `${API_BASE_URL}/friends/block/${friendId}`,
+              {},
+              { headers: { Authorization: `Bearer ${token}` } },
+            );
+            Alert.alert("Blocked", "User has been blocked.");
+            onClose();
+          } catch {
+            Alert.alert("Error", "Failed to block user.");
+          }
+        },
+      },
+    ]);
+  };
+
+  const renderMsg = ({ item }) => {
+    const isMe = item.senderId === Number(user?.userId);
+    return (
+      <View style={[fcS.msgRow, isMe && fcS.msgRowMe]}>
+        <View style={[fcS.bubble, isMe ? fcS.bubbleMe : fcS.bubbleThem]}>
+          <Text style={[fcS.msgText, isMe && fcS.msgTextMe]}>
+            {item.content}
+          </Text>
+          <Text style={fcS.msgTime}>
+            {new Date(item.timestamp).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  return (
+    <Modal visible statusBarTranslucent>
+      <View style={{ flex: 1, backgroundColor: COLORS.bg }}>
+        {/* Header with Remove + Block + Exit */}
+        <View style={fcS.header}>
+          <TouchableOpacity
+            onPress={onClose}
+            style={{ padding: 4, marginRight: SPACING.sm }}
+          >
+            <Ionicons name="arrow-back" size={20} color="#fff" />
+          </TouchableOpacity>
+          <View style={{ flex: 1 }}>
+            <Text style={fcS.partnerName}>{friendUsername}</Text>
+            <Text style={fcS.subText}>Friend Chat</Text>
+          </View>
+          {/* Issue 7: Remove, Block, Exit buttons */}
+          <TouchableOpacity
+            onPress={handleRemove}
+            style={[fcS.actionBtn, fcS.removeBtn]}
+          >
+            <Ionicons
+              name="person-remove-outline"
+              size={13}
+              color={COLORS.redLight}
+            />
+            <Text style={[fcS.actionBtnText, { color: COLORS.redLight }]}>
+              Remove
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleBlock}
+            style={[fcS.actionBtn, fcS.blockBtn]}
+          >
+            <Ionicons name="ban-outline" size={13} color="#f97316" />
+            <Text style={[fcS.actionBtnText, { color: "#f97316" }]}>Block</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={onClose}
+            style={[fcS.actionBtn, fcS.exitBtnStyle]}
+          >
+            <Ionicons name="exit-outline" size={13} color={COLORS.textMuted} />
+            <Text style={[fcS.actionBtnText, { color: COLORS.textMuted }]}>
+              Exit
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {loading ? (
+          <View
+            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+          >
+            <ActivityIndicator color={COLORS.purplePale} size="large" />
+          </View>
+        ) : (
+          <FlatList
+            ref={flatRef}
+            data={messages}
+            keyExtractor={(item) => String(item.id || Math.random())}
+            renderItem={renderMsg}
+            contentContainerStyle={fcS.msgList}
+            showsVerticalScrollIndicator={false}
+            onContentSizeChange={() =>
+              flatRef.current?.scrollToEnd({ animated: false })
+            }
+            ListEmptyComponent={
+              <View style={{ alignItems: "center", marginTop: 60 }}>
+                <Text style={{ fontSize: 36, marginBottom: 12 }}>💬</Text>
+                <Text style={{ color: COLORS.textMuted, fontSize: 15 }}>
+                  Say hello!
+                </Text>
+              </View>
+            }
+          />
+        )}
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <View style={[fcS.inputBar, { paddingBottom: insets.bottom + 8 }]}>
+            <TextInput
+              style={fcS.input}
+              placeholder="Type a message..."
+              placeholderTextColor={COLORS.textDim}
+              value={inputText}
+              onChangeText={setInputText}
+              multiline
+              maxLength={1000}
+            />
+            <TouchableOpacity
+              onPress={sendMsg}
+              style={[
+                fcS.sendBtn,
+                (!inputText.trim() || !connected) && fcS.sendBtnOff,
+              ]}
+              disabled={!inputText.trim() || !connected}
+            >
+              <Ionicons name="send" size={17} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </View>
+    </Modal>
+  );
+}
+
+const fcS = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: SPACING.md,
+    paddingTop: Platform.OS === "ios" ? 52 : SPACING.xl,
+    paddingBottom: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    backgroundColor: "rgba(7,7,16,0.97)",
+    gap: 4,
+  },
+  partnerName: { fontSize: 14, fontWeight: "700", color: "#fff" },
+  subText: { fontSize: 11, color: COLORS.textMuted, marginTop: 1 },
+  actionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 5,
+    borderRadius: RADIUS.sm,
+    borderWidth: 1,
+  },
+  removeBtn: {
+    borderColor: "rgba(239,68,68,0.25)",
+    backgroundColor: "rgba(239,68,68,0.08)",
+  },
+  blockBtn: {
+    borderColor: "rgba(249,115,22,0.25)",
+    backgroundColor: "rgba(249,115,22,0.08)",
+  },
+  exitBtnStyle: {
+    borderColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(255,255,255,0.04)",
+  },
+  actionBtnText: { fontSize: 11, fontWeight: "600" },
+  msgList: { padding: SPACING.md, paddingBottom: SPACING.lg },
+  msgRow: { flexDirection: "row", marginBottom: SPACING.sm },
+  msgRowMe: { flexDirection: "row-reverse" },
+  bubble: {
+    maxWidth: width * 0.72,
+    borderRadius: RADIUS.lg,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm + 2,
+  },
+  bubbleMe: {
+    backgroundColor: "rgba(124,58,237,0.8)",
+    borderBottomRightRadius: 4,
+  },
+  bubbleThem: {
+    backgroundColor: "rgba(255,255,255,0.07)",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderBottomLeftRadius: 4,
+  },
+  msgText: { fontSize: 14, color: "rgba(255,255,255,0.85)", lineHeight: 20 },
+  msgTextMe: { color: "#fff" },
+  msgTime: {
+    fontSize: 10,
+    color: "rgba(255,255,255,0.35)",
+    marginTop: 4,
+    textAlign: "right",
+  },
+  inputBar: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    padding: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    backgroundColor: "rgba(7,7,16,0.98)",
+    gap: SPACING.sm,
+    paddingBottom: SPACING.lg,
+  },
+  input: {
+    flex: 1,
+    backgroundColor: COLORS.bgInput,
+    borderRadius: RADIUS.full,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: 10,
+    color: "#fff",
+    fontSize: 14,
+    maxHeight: 110,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  sendBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.purple,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sendBtnOff: { backgroundColor: "rgba(124,58,237,0.3)" },
+});
+
 const TABS = ["Friends", "Requests", "Blocked", "Search"];
 
 function Avatar({ username, uri, size = 42 }) {
@@ -63,6 +411,8 @@ export default function FriendsScreen() {
   const [searchResult, setSearchResult] = useState(null);
   const [searchLoading, setSearchLoading] = useState(false);
   const [reqSent, setReqSent] = useState(false);
+  // Issue 7: Inline friend chat state
+  const [friendChat, setFriendChat] = useState(null); // { chatRoomId, friendId, friendUsername }
 
   useEffect(() => {
     if (user) fetchAll();
@@ -181,7 +531,7 @@ export default function FriendsScreen() {
     }
   };
 
-  const handleOpenChat = async (friendId) => {
+  const handleOpenChat = async (friendId, friendUsername) => {
     setActionLoading(friendId);
     try {
       const r = await axios.post(
@@ -189,11 +539,12 @@ export default function FriendsScreen() {
         {},
         headers,
       );
-      await SecureStore.setItemAsync(
-        "zn_chat_room_id",
-        String(r.data.chatRoomId),
-      );
-      router.push("/(tabs)/match");
+      // Issue 7: Open inline FriendChatRoom instead of navigating to match tab
+      setFriendChat({
+        chatRoomId: r.data.chatRoomId,
+        friendId,
+        friendUsername: friendUsername || "Friend",
+      });
     } catch {
       Toast.show({ type: "error", text1: "Could not open chat" });
     } finally {
@@ -248,7 +599,7 @@ export default function FriendsScreen() {
         )}
       </View>
       <TouchableOpacity
-        onPress={() => handleOpenChat(item.id || item.friendId)}
+        onPress={() => handleOpenChat(item.id || item.friendId, item.username)}
         style={s.chatBtn}
         disabled={actionLoading === (item.id || item.friendId)}
       >
@@ -363,6 +714,19 @@ export default function FriendsScreen() {
 
   return (
     <View style={[s.container, { paddingTop: insets.top }]}>
+      {/* Issue 7: Inline friend chat screen */}
+      {friendChat && (
+        <View style={StyleSheet.absoluteFill}>
+          <FriendChatRoom
+            user={user}
+            chatRoomId={friendChat.chatRoomId}
+            friendId={friendChat.friendId}
+            friendUsername={friendChat.friendUsername}
+            onClose={() => setFriendChat(null)}
+          />
+        </View>
+      )}
+
       <ZnDialog
         visible={!!dialog}
         title={dialog?.title}
@@ -542,7 +906,6 @@ export default function FriendsScreen() {
   );
 }
 
-import { ActivityIndicator } from "react-native";
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
   header: {

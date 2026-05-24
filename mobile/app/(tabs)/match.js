@@ -1,4 +1,4 @@
-// app/(tabs)/match.js — Match Screen (exact website Chat.jsx match)
+// app/(tabs)/match.js — Match Screen
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
+  Modal,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -33,7 +34,7 @@ const API_IMG = API_BASE_URL.replace("/api", "");
 const POLL_INTERVAL = 2500;
 
 // ─── Idle/Queue screen ───────────────────────────────────────────────────────
-function MatchQueue({ user, router, onMatched }) {
+function MatchQueue({ user, router, onMatched, autoStart }) {
   const insets = useSafeAreaInsets();
   const [status, setStatus] = useState("idle"); // idle | searching | matched | error
   const [errorMsg, setErrorMsg] = useState("");
@@ -43,6 +44,13 @@ function MatchQueue({ user, router, onMatched }) {
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const rotateLoop = useRef(null);
+
+  // Issue 4: Auto-start searching if autoStart flag is set (from Next button)
+  useEffect(() => {
+    if (autoStart) {
+      startSearching();
+    }
+  }, [autoStart]);
 
   useEffect(
     () => () => {
@@ -228,6 +236,7 @@ function MatchQueue({ user, router, onMatched }) {
               colors={["#7c3aed", "#6366f1", "#0891b2"]}
               style={mqS.circle}
             >
+              {/* Issue 6: Single lightning icon only */}
               <Ionicons name="flash" size={44} color="#fff" />
             </LinearGradient>
             <Text style={mqS.idleTitle}>Find a Stranger</Text>
@@ -238,8 +247,8 @@ function MatchQueue({ user, router, onMatched }) {
         )}
       </View>
 
-      {/* Bottom controls */}
-      <View style={[mqS.bottom, { paddingBottom: insets.bottom + 20 }]}>
+      {/* Issue 6: Bottom controls - cancel button visible above nav bar */}
+      <View style={[mqS.bottom, { paddingBottom: insets.bottom + 80 }]}>
         {status === "idle" || status === "error" ? (
           <TouchableOpacity
             onPress={startSearching}
@@ -257,7 +266,7 @@ function MatchQueue({ user, router, onMatched }) {
             >
               <Ionicons name="flash" size={18} color="#fff" />
               <Text style={mqS.startBtnText}>
-                {status === "error" ? "Try Again" : "⚡  Start Matching"}
+                {status === "error" ? "Try Again" : "Start Matching"}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -427,10 +436,123 @@ const mqS = StyleSheet.create({
   },
 });
 
+// ─── Partner Left Options — Modal so it covers tab bar and is centered ───────
+function PartnerLeftOverlay({ user, onReconnect, onFindNew, onHome }) {
+  return (
+    <Modal visible transparent animationType="fade" statusBarTranslucent>
+      <View style={plS.overlay}>
+        <View style={plS.card}>
+          <Text style={plS.emoji}>👋</Text>
+          <Text style={plS.title}>Partner Left</Text>
+          <Text style={plS.sub}>
+            Your chat partner has left the conversation.
+          </Text>
+
+          <TouchableOpacity
+            onPress={onReconnect}
+            style={plS.btnWrap}
+            activeOpacity={0.85}
+          >
+            <LinearGradient
+              colors={["#7c3aed", "#6366f1"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={plS.btn}
+            >
+              <Ionicons name="refresh" size={16} color="#fff" />
+              <Text style={plS.btnText}>Reconnect</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={onFindNew}
+            style={plS.btnWrap}
+            activeOpacity={0.85}
+          >
+            <LinearGradient
+              colors={["#0891b2", "#0e7490"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={plS.btn}
+            >
+              <Ionicons name="flash" size={16} color="#fff" />
+              <Text style={plS.btnText}>Find New Match</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={onHome}
+            style={plS.homeBtn}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="home-outline" size={16} color={COLORS.textMuted} />
+            <Text style={plS.homeBtnText}>Go Home</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const plS = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.88)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  card: {
+    backgroundColor: COLORS.bgCard,
+    borderRadius: RADIUS.xl,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: SPACING.xl,
+    width: "80%",
+    alignItems: "center",
+  },
+  emoji: { fontSize: 48, marginBottom: SPACING.md },
+  title: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#fff",
+    marginBottom: SPACING.sm,
+  },
+  sub: {
+    fontSize: 13,
+    color: COLORS.textMuted,
+    textAlign: "center",
+    marginBottom: SPACING.xl,
+    lineHeight: 20,
+  },
+  btnWrap: {
+    borderRadius: RADIUS.md,
+    overflow: "hidden",
+    width: "100%",
+    marginBottom: SPACING.sm,
+  },
+  btn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 13,
+  },
+  btnText: { color: "#fff", fontWeight: "700", fontSize: 14 },
+  homeBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: SPACING.sm,
+    padding: SPACING.sm,
+  },
+  homeBtnText: { fontSize: 14, color: COLORS.textMuted },
+});
+
 // ─── Chat screen ─────────────────────────────────────────────────────────────
-function ChatRoom({ user, chatRoomId, onExit }) {
+function ChatRoom({ user, chatRoomId, onExit, onNext }) {
   const { subscribe, send, connected } = useWebSocket();
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [messages, setMessages] = useState([]);
   const [chatRoom, setChatRoom] = useState(null);
   const [partnerInfo, setPartnerInfo] = useState(null);
@@ -438,6 +560,9 @@ function ChatRoom({ user, chatRoomId, onExit }) {
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(true);
   const [dialog, setDialog] = useState(null);
+  // Issue 3: Partner left overlay state
+  const [partnerLeft, setPartnerLeft] = useState(false);
+  const [partnerId, setPartnerId] = useState(null);
   const flatRef = useRef(null);
   const token = user?.token;
 
@@ -453,13 +578,13 @@ function ChatRoom({ user, chatRoomId, onExit }) {
       const room = res.data.find((r) => r.id === Number(chatRoomId));
       if (room) {
         setChatRoom(room);
-        const partnerId =
+        const pId =
           room.user1Id === Number(user.userId) ? room.user2Id : room.user1Id;
+        setPartnerId(pId);
         try {
-          const pr = await axios.get(
-            `${API_BASE_URL}/user/profile/${partnerId}`,
-            { headers: { Authorization: `Bearer ${token}` } },
-          );
+          const pr = await axios.get(`${API_BASE_URL}/user/profile/${pId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
           setPartnerInfo(pr.data);
         } catch {}
       }
@@ -498,6 +623,8 @@ function ChatRoom({ user, chatRoomId, onExit }) {
         const d = JSON.parse(msg.body);
         if (d.event === "PARTNER_ONLINE") setPartnerOnline(true);
         else if (d.event === "PARTNER_OFFLINE") setPartnerOnline(false);
+        // Issue 3: Show partner left overlay instead of alert
+        else if (d.event === "PARTNER_LEFT") setPartnerLeft(true);
       } catch {}
     });
     send(`/app/chat/${chatRoomId}/online`, {
@@ -518,11 +645,11 @@ function ChatRoom({ user, chatRoomId, onExit }) {
   const sendMsg = useCallback(() => {
     if (!inputText.trim() || !connected) return;
     const myId = Number(user?.userId);
-    const partnerId =
+    const pId =
       chatRoom?.user1Id === myId ? chatRoom?.user2Id : chatRoom?.user1Id;
     send(`/app/chat/${chatRoomId}`, {
       senderId: myId,
-      recipientId: partnerId,
+      recipientId: pId,
       content: inputText.trim(),
       messageType: "TEXT",
     });
@@ -568,10 +695,11 @@ function ChatRoom({ user, chatRoomId, onExit }) {
     });
   };
 
+  // Issue 4: Next now directly calls onNext which starts searching
   const handleNext = () => {
     setDialog({
       title: "Find Next Match?",
-      message: "You'll leave this chat.",
+      message: "You'll leave this chat and search for a new match.",
       icon: "⚡",
       confirmLabel: "Next Match",
       onConfirm: async () => {
@@ -581,9 +709,72 @@ function ChatRoom({ user, chatRoomId, onExit }) {
           chatRoomId: Number(chatRoomId),
         });
         await SecureStore.deleteItemAsync("zn_chat_room_id");
-        onExit();
+        onNext(); // triggers auto-search
       },
     });
+  };
+
+  // Issue 5: Add Friend button handler
+  const handleAddFriend = async () => {
+    if (!partnerId) return;
+    try {
+      await axios.post(
+        `${API_BASE_URL}/friends/request/${partnerId}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      Alert.alert("Friend Request Sent!", "Your request has been sent.");
+    } catch (err) {
+      const msg = err.response?.data?.error || "Failed to send request";
+      if (msg.toLowerCase().includes("already")) {
+        Alert.alert("Already Sent", "Friend request already sent.");
+      } else {
+        Alert.alert("Error", msg);
+      }
+    }
+  };
+
+  // Issue 3: Reconnect handler — premium check
+  const handleReconnect = async () => {
+    if (!user?.isPremium) {
+      setPartnerLeft(false);
+      router.push("/premium");
+      return;
+    }
+    // Premium user: send reconnect request
+    try {
+      await axios.post(
+        `${API_BASE_URL}/match/reconnect`,
+        { chatRoomId: Number(chatRoomId), partnerId },
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      setPartnerLeft(false);
+      Alert.alert("Reconnect Request Sent", "Waiting for partner to accept.");
+    } catch {
+      Alert.alert("Failed", "Could not send reconnect request.");
+    }
+  };
+
+  // Issue 3: Find new — start searching
+  const handleFindNew = async () => {
+    setPartnerLeft(false);
+    send(`/app/chat/${chatRoomId}/leave`, {
+      userId: Number(user?.userId),
+      chatRoomId: Number(chatRoomId),
+    });
+    await SecureStore.deleteItemAsync("zn_chat_room_id");
+    onNext(); // triggers auto-search
+  };
+
+  // Issue 3: Go Home
+  const handleGoHome = async () => {
+    setPartnerLeft(false);
+    send(`/app/chat/${chatRoomId}/leave`, {
+      userId: Number(user?.userId),
+      chatRoomId: Number(chatRoomId),
+    });
+    await SecureStore.deleteItemAsync("zn_chat_room_id");
+    onExit();
   };
 
   const renderMsg = ({ item }) => {
@@ -599,6 +790,7 @@ function ChatRoom({ user, chatRoomId, onExit }) {
               resizeMode="cover"
             />
           ) : (
+            // Issue 2: Show "Anonymous" instead of username
             <Text style={[chS.msgText, isMe && chS.msgTextMe]}>
               {item.content}
             </Text>
@@ -614,143 +806,161 @@ function ChatRoom({ user, chatRoomId, onExit }) {
     );
   };
 
-  const isFriendChat = chatRoom?.roomType === "FRIEND_CHAT";
-
   if (loading)
     return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: COLORS.bg,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <ActivityIndicator size="large" color={COLORS.purplePale} />
-      </View>
+      <Modal visible statusBarTranslucent>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: COLORS.bg,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ActivityIndicator size="large" color={COLORS.purplePale} />
+        </View>
+      </Modal>
     );
 
   return (
-    <View style={{ flex: 1, backgroundColor: COLORS.bg }}>
-      <ZnDialog
-        visible={!!dialog}
-        title={dialog?.title}
-        message={dialog?.message}
-        icon={dialog?.icon}
-        confirmLabel={dialog?.confirmLabel}
-        confirmColor={dialog?.confirmColor}
-        onConfirm={dialog?.onConfirm}
-        onCancel={() => setDialog(null)}
-      />
+    // FIX 1: Modal renders above tab bar — input bar is always visible
+    <Modal visible statusBarTranslucent>
+      <View style={{ flex: 1, backgroundColor: COLORS.bg }}>
+        {/* Issue 3: Partner left overlay */}
+        {partnerLeft && (
+          <PartnerLeftOverlay
+            user={user}
+            onReconnect={handleReconnect}
+            onFindNew={handleFindNew}
+            onHome={handleGoHome}
+          />
+        )}
 
-      {/* Header */}
-      <View style={[chS.header, { paddingTop: insets.top + 8 }]}>
-        <View style={chS.headerAvatar}>
-          <LinearGradient
-            colors={["#7c3aed", "#6366f1"]}
-            style={chS.avatarCircle}
-          >
-            <Text style={chS.avatarText}>
-              {(partnerInfo?.username || "?").slice(0, 2).toUpperCase()}
-            </Text>
-          </LinearGradient>
-          <View>
-            <Text style={chS.partnerName}>
-              {partnerInfo?.username || "Stranger"}
-            </Text>
-            <View style={chS.onlineRow}>
-              <View
-                style={[
-                  chS.dot,
-                  {
-                    backgroundColor: partnerOnline
-                      ? COLORS.green
-                      : COLORS.textMuted,
-                  },
-                ]}
-              />
-              <Text style={chS.onlineStatus}>
-                {partnerOnline ? "Online" : "Offline"}
-              </Text>
+        <ZnDialog
+          visible={!!dialog}
+          title={dialog?.title}
+          message={dialog?.message}
+          icon={dialog?.icon}
+          confirmLabel={dialog?.confirmLabel}
+          confirmColor={dialog?.confirmColor}
+          onConfirm={dialog?.onConfirm}
+          onCancel={() => setDialog(null)}
+        />
+
+        {/* Header — Issue 2: Show "Anonymous" not partner username */}
+        <View style={[chS.header, { paddingTop: insets.top + 8 }]}>
+          <View style={chS.headerAvatar}>
+            <LinearGradient
+              colors={["#7c3aed", "#6366f1"]}
+              style={chS.avatarCircle}
+            >
+              <Text style={chS.avatarText}>AN</Text>
+            </LinearGradient>
+            <View>
+              {/* Issue 2: Always show "Anonymous" */}
+              <Text style={chS.partnerName}>Anonymous</Text>
+              <View style={chS.onlineRow}>
+                <View
+                  style={[
+                    chS.dot,
+                    {
+                      backgroundColor: partnerOnline
+                        ? COLORS.green
+                        : COLORS.textMuted,
+                    },
+                  ]}
+                />
+                <Text style={chS.onlineStatus}>
+                  {partnerOnline ? "Online" : "Offline"}
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
-        <View style={chS.headerBtns}>
-          {!isFriendChat && (
+          <View style={chS.headerBtns}>
+            {/* Issue 5: Add Friend button */}
+            <TouchableOpacity
+              onPress={handleAddFriend}
+              style={[chS.headerBtn, chS.addFriendBtn]}
+            >
+              <Ionicons name="person-add" size={15} color={COLORS.purplePale} />
+              <Text style={[chS.headerBtnText, { color: COLORS.purplePale }]}>
+                Add
+              </Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={handleNext} style={chS.headerBtn}>
               <Ionicons name="arrow-forward" size={15} color={COLORS.green} />
               <Text style={[chS.headerBtnText, { color: COLORS.green }]}>
                 Next
               </Text>
             </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            onPress={handleExit}
-            style={[chS.headerBtn, chS.exitBtn]}
-          >
-            <Ionicons name="exit-outline" size={15} color={COLORS.redLight} />
-            <Text style={[chS.headerBtnText, { color: COLORS.redLight }]}>
-              Exit
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Messages */}
-      <FlatList
-        ref={flatRef}
-        data={messages}
-        keyExtractor={(item) => String(item.id || Math.random())}
-        renderItem={renderMsg}
-        contentContainerStyle={chS.msgList}
-        showsVerticalScrollIndicator={false}
-        onContentSizeChange={() =>
-          flatRef.current?.scrollToEnd({ animated: false })
-        }
-        ListEmptyComponent={
-          <View style={{ alignItems: "center", marginTop: 60 }}>
-            <Text style={{ fontSize: 40, marginBottom: 12 }}>👋</Text>
-            <Text style={{ color: COLORS.textMuted, fontSize: 15 }}>
-              Say hello!
-            </Text>
+            <TouchableOpacity
+              onPress={handleExit}
+              style={[chS.headerBtn, chS.exitBtn]}
+            >
+              <Ionicons name="exit-outline" size={15} color={COLORS.redLight} />
+              <Text style={[chS.headerBtnText, { color: COLORS.redLight }]}>
+                Exit
+              </Text>
+            </TouchableOpacity>
           </View>
-        }
-      />
-
-      {/* Input */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
-        <View style={[chS.inputBar, { paddingBottom: insets.bottom + 8 }]}>
-          <TouchableOpacity onPress={handlePickImage} style={chS.attachBtn}>
-            <Ionicons
-              name="image-outline"
-              size={22}
-              color={COLORS.purplePale}
-            />
-          </TouchableOpacity>
-          <TextInput
-            style={chS.input}
-            placeholder="Type a message..."
-            placeholderTextColor={COLORS.textDim}
-            value={inputText}
-            onChangeText={setInputText}
-            multiline
-            maxLength={1000}
-          />
-          <TouchableOpacity
-            onPress={sendMsg}
-            style={[
-              chS.sendBtn,
-              (!inputText.trim() || !connected) && chS.sendBtnOff,
-            ]}
-            disabled={!inputText.trim() || !connected}
-          >
-            <Ionicons name="send" size={17} color="#fff" />
-          </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-    </View>
+
+        {/* Messages */}
+        <FlatList
+          ref={flatRef}
+          data={messages}
+          keyExtractor={(item) => String(item.id || Math.random())}
+          renderItem={renderMsg}
+          contentContainerStyle={chS.msgList}
+          showsVerticalScrollIndicator={false}
+          onContentSizeChange={() =>
+            flatRef.current?.scrollToEnd({ animated: false })
+          }
+          ListEmptyComponent={
+            <View style={{ alignItems: "center", marginTop: 60 }}>
+              <Text style={{ fontSize: 40, marginBottom: 12 }}>👋</Text>
+              <Text style={{ color: COLORS.textMuted, fontSize: 15 }}>
+                Say hello!
+              </Text>
+            </View>
+          }
+        />
+
+        {/* Issue 1: Input bar — paddingBottom only for safe area, NO extra tab bar offset */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <View style={[chS.inputBar, { paddingBottom: insets.bottom + 8 }]}>
+            <TouchableOpacity onPress={handlePickImage} style={chS.attachBtn}>
+              <Ionicons
+                name="image-outline"
+                size={22}
+                color={COLORS.purplePale}
+              />
+            </TouchableOpacity>
+            <TextInput
+              style={chS.input}
+              placeholder="Type a message..."
+              placeholderTextColor={COLORS.textDim}
+              value={inputText}
+              onChangeText={setInputText}
+              multiline
+              maxLength={1000}
+            />
+            <TouchableOpacity
+              onPress={sendMsg}
+              style={[
+                chS.sendBtn,
+                (!inputText.trim() || !connected) && chS.sendBtnOff,
+              ]}
+              disabled={!inputText.trim() || !connected}
+            >
+              <Ionicons name="send" size={17} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </View>
+    </Modal>
   );
 }
 
@@ -783,17 +993,21 @@ const chS = StyleSheet.create({
   },
   dot: { width: 6, height: 6, borderRadius: 3 },
   onlineStatus: { fontSize: 11, color: COLORS.textMuted },
-  headerBtns: { flexDirection: "row", gap: SPACING.sm },
+  headerBtns: { flexDirection: "row", gap: SPACING.xs },
   headerBtn: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: RADIUS.sm,
     borderWidth: 1,
     borderColor: "rgba(74,222,128,0.25)",
     backgroundColor: "rgba(74,222,128,0.08)",
+  },
+  addFriendBtn: {
+    borderColor: "rgba(139,92,246,0.3)",
+    backgroundColor: "rgba(139,92,246,0.1)",
   },
   exitBtn: {
     borderColor: "rgba(239,68,68,0.25)",
@@ -867,6 +1081,8 @@ export default function MatchScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const [activeRoom, setActiveRoom] = useState(null);
+  // Issue 4: autoStart flag for Next button — skip idle screen
+  const [autoStart, setAutoStart] = useState(false);
 
   useEffect(() => {
     SecureStore.getItemAsync("zn_chat_room_id").then((id) => {
@@ -874,19 +1090,31 @@ export default function MatchScreen() {
     });
   }, []);
 
+  // Issue 4: onNext — exit chat AND auto-start searching
+  const handleNext = () => {
+    setAutoStart(true);
+    setActiveRoom(null);
+  };
+
   if (activeRoom)
     return (
       <ChatRoom
         user={user}
         chatRoomId={activeRoom}
-        onExit={() => setActiveRoom(null)}
+        onExit={() => {
+          setAutoStart(false);
+          setActiveRoom(null);
+        }}
+        onNext={handleNext}
       />
     );
   return (
     <MatchQueue
       user={user}
       router={router}
+      autoStart={autoStart}
       onMatched={async () => {
+        setAutoStart(false);
         const id = await SecureStore.getItemAsync("zn_chat_room_id");
         setActiveRoom(id);
       }}

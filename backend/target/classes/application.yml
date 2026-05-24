@@ -3,14 +3,14 @@ spring:
     name: zonnecto-backend
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/zonnecto?sslmode=disable
-    username: postgres
-    password: postgres
+    url: "jdbc:postgresql://ep-proud-shape-aojawdi5-pooler.c-2.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    username: neondb_owner
+    password: npg_Sdavk5P6OiuX
     driver-class-name: org.postgresql.Driver
     hikari:
-      connection-timeout: 30000
-      initialization-fail-timeout: 30000
-      maximum-pool-size: 5
+      connection-timeout: 60000
+      initialization-fail-timeout: 60000
+      maximum-pool-size: 3
       minimum-idle: 1
       idle-timeout: 300000
       max-lifetime: 600000
@@ -28,11 +28,12 @@ spring:
 
   data:
     redis:
-      host: localhost
+      host: amazed-guinea-119983.upstash.io
       port: 6379
+      password: gQAAAAAAAdSvAAIgcDFmMDZmMGZmY2ZiMjI0OGEyODEyMzQ2OTFmNDMyYTFmYw
       timeout: 60000
       ssl:
-        enabled: false
+        enabled: true
 
   servlet:
     multipart:
@@ -67,4 +68,4 @@ logging:
 
 apps:
   script:
-    url: http://localhost:8080/api/health
+    url: http://zonnecto-backend.onrender.com/api/health

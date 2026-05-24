@@ -1,4 +1,4 @@
-// app/(tabs)/profile.js — Profile Screen (exact website match)
+// app/(tabs)/profile.js
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -20,8 +20,14 @@ import { COLORS, SPACING, RADIUS } from "../../src/constants/theme";
 import { ZnDialog } from "../../src/components/ZnComponents";
 import { API_BASE_URL } from "../../src/constants/api";
 import Toast from "react-native-toast-message";
+import Svg, {
+  Text as SvgText,
+  Defs,
+  LinearGradient as SvgGradient,
+  Stop,
+} from "react-native-svg";
 
-const API_IMG = API_BASE_URL.replace("/api", "");
+const { width: SCREEN_W } = Dimensions.get("window");
 
 const MENU_ITEMS = [
   {
@@ -54,7 +60,51 @@ const MENU_ITEMS = [
     color: "#4ade80",
     route: "/about",
   },
+  {
+    icon: "mail-outline",
+    label: "Contact Us",
+    color: "#38bdf8",
+    route: "/contact",
+  },
+  {
+    icon: "alert-circle-outline",
+    label: "Disclaimer",
+    color: "#fb923c",
+    route: "/disclaimer",
+  },
 ];
+
+// ── Zonnecto Logo SVG (replaces purple orb bg) ──────────────────────────────
+function ZonnectoLogoBg() {
+  return (
+    <View style={s.logoBgWrap} pointerEvents="none">
+      <Svg
+        width={SCREEN_W * 0.75}
+        height={SCREEN_W * 0.75}
+        viewBox="0 0 200 200"
+      >
+        <Defs>
+          <SvgGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0" stopColor="#7c3aed" stopOpacity="0.18" />
+            <Stop offset="1" stopColor="#06b6d4" stopOpacity="0.10" />
+          </SvgGradient>
+        </Defs>
+        {/* Big ∞ symbol as watermark */}
+        <SvgText
+          x="100"
+          y="140"
+          textAnchor="middle"
+          fontSize="160"
+          fontWeight="900"
+          fill="url(#logoGrad)"
+          fontFamily="serif"
+        >
+          ∞
+        </SvgText>
+      </Svg>
+    </View>
+  );
+}
 
 export default function ProfileScreen() {
   const { user, logout, refreshUserProfile } = useAuth();
@@ -214,66 +264,87 @@ export default function ProfileScreen() {
         }
         contentContainerStyle={{ paddingBottom: insets.bottom + 90 }}
       >
-        {/* Header gradient */}
-        <LinearGradient
-          colors={["rgba(124,58,237,0.28)", "rgba(7,7,16,0)"]}
-          style={s.heroGrad}
-        >
-          {/* Avatar */}
-          <TouchableOpacity
-            onPress={handleUploadDp}
-            disabled={uploadingDp}
-            style={s.avatarWrap}
-          >
-            <LinearGradient colors={["#7c3aed", "#6366f1"]} style={s.avatar}>
-              <Text style={s.avatarText}>
-                {(profile?.username || user?.username || "?")
-                  .slice(0, 2)
-                  .toUpperCase()}
-              </Text>
-            </LinearGradient>
-            <View style={s.cameraBtn}>
-              <Ionicons
-                name={uploadingDp ? "hourglass" : "camera"}
-                size={13}
-                color="#fff"
-              />
-            </View>
-          </TouchableOpacity>
+        {/* ── Hero section with Zonnecto logo watermark ── */}
+        <View style={s.heroWrap}>
+          {/* Logo watermark bg */}
+          <ZonnectoLogoBg />
 
-          <Text style={s.username}>{profile?.username || user?.username}</Text>
-          {profile?.fullName && (
-            <Text style={s.fullName}>{profile.fullName}</Text>
-          )}
+          {/* Gradient overlay */}
+          <LinearGradient
+            colors={["rgba(124,58,237,0.22)", "rgba(7,7,16,0)"]}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
 
-          {premiumActive ? (
-            <View style={s.premiumBadge}>
-              <Ionicons name="star" size={12} color={COLORS.gold} />
-              <Text style={s.premiumBadgeText}>
-                Premium · {profile?.premiumPlan}
-              </Text>
-            </View>
-          ) : (
+          {/* Content */}
+          <View style={s.heroContent}>
+            {/* Avatar */}
             <TouchableOpacity
-              onPress={() => router.push("/premium")}
-              style={s.upgradeBadge}
+              onPress={handleUploadDp}
+              disabled={uploadingDp}
+              style={s.avatarWrap}
             >
-              <Text style={s.upgradeBadgeText}>⭐ Upgrade to Premium</Text>
+              <LinearGradient colors={["#7c3aed", "#6366f1"]} style={s.avatar}>
+                <Text style={s.avatarText}>
+                  {(profile?.username || user?.username || "?")
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </Text>
+              </LinearGradient>
+              <View style={s.cameraBtn}>
+                <Ionicons
+                  name={uploadingDp ? "hourglass" : "camera"}
+                  size={13}
+                  color="#fff"
+                />
+              </View>
             </TouchableOpacity>
-          )}
-        </LinearGradient>
 
-        {/* Stats row */}
+            <Text style={s.username}>
+              {profile?.username || user?.username}
+            </Text>
+            {profile?.fullName && (
+              <Text style={s.fullName}>{profile.fullName}</Text>
+            )}
+
+            {premiumActive ? (
+              <View style={s.premiumBadge}>
+                <Ionicons name="star" size={12} color={COLORS.gold} />
+                <Text style={s.premiumBadgeText}>
+                  Premium · {profile?.premiumPlan}
+                </Text>
+              </View>
+            ) : (
+              <TouchableOpacity
+                onPress={() => router.push("/premium")}
+                style={s.upgradeBadge}
+              >
+                <Text style={s.upgradeBadgeText}>⭐ Upgrade to Premium</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {/* ── Stats row — FIXED: equal spacing, separator lines ── */}
         <View style={s.statsRow}>
           {[
             { label: "Age", value: profile?.age || "—" },
             { label: "Gender", value: profile?.gender || "—" },
             { label: "State", value: profile?.state || "—" },
           ].map((st, i) => (
-            <View key={i} style={s.statItem}>
-              <Text style={s.statValue}>{st.value}</Text>
-              <Text style={s.statLabel}>{st.label}</Text>
-            </View>
+            <React.Fragment key={i}>
+              {i > 0 && <View style={s.statDivider} />}
+              <View style={s.statItem}>
+                <Text
+                  style={s.statValue}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                >
+                  {st.value}
+                </Text>
+                <Text style={s.statLabel}>{st.label}</Text>
+              </View>
+            </React.Fragment>
           ))}
         </View>
 
@@ -364,12 +435,24 @@ export default function ProfileScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
 
-  heroGrad: {
-    paddingTop: 20,
+  // ── Hero with logo bg ──────────────────────────────────────────────────────
+  heroWrap: {
     paddingBottom: SPACING.xl,
-    alignItems: "center",
-    paddingHorizontal: SPACING.lg,
+    overflow: "hidden",
+    position: "relative",
   },
+  logoBgWrap: {
+    position: "absolute",
+    top: -SCREEN_W * 0.1,
+    left: SCREEN_W * 0.125,
+    opacity: 1,
+  },
+  heroContent: {
+    paddingTop: 20,
+    paddingHorizontal: SPACING.lg,
+    alignItems: "center",
+  },
+
   avatarWrap: { position: "relative", marginBottom: SPACING.md },
   avatar: {
     width: 88,
@@ -422,6 +505,7 @@ const s = StyleSheet.create({
     fontWeight: "600",
   },
 
+  // ── Stats row FIXED ────────────────────────────────────────────────────────
   statsRow: {
     flexDirection: "row",
     marginHorizontal: SPACING.lg,
@@ -430,13 +514,26 @@ const s = StyleSheet.create({
     borderRadius: RADIUS.lg,
     borderWidth: 1,
     borderColor: COLORS.border,
+    overflow: "hidden",
   },
-  statItem: { flex: 1, alignItems: "center", paddingVertical: SPACING.md },
+  statItem: {
+    flex: 1, // ← equal width for all 3
+    alignItems: "center",
+    paddingVertical: SPACING.md,
+    paddingHorizontal: 4, // ← small horizontal padding so text doesn't touch separator
+  },
+  statDivider: {
+    // ← vertical line between stats
+    width: 1,
+    backgroundColor: COLORS.border,
+    marginVertical: SPACING.sm,
+  },
   statValue: {
     fontSize: 15,
     fontWeight: "700",
     color: "#fff",
     marginBottom: 2,
+    textAlign: "center",
   },
   statLabel: { fontSize: 11, color: COLORS.textMuted, fontWeight: "600" },
 

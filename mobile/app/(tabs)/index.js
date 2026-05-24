@@ -27,7 +27,7 @@ export default function HomeScreen() {
   const { onlineCount, subscribe, connected } = useWebSocket();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [stats, setStats] = useState({ friends: 0, chats: 0 });
+  const [stats, setStats] = useState({ friends: 0, pending: 0, chats: 0 });
   const [refreshing, setRefreshing] = useState(false);
   const [broadcastMsg, setBroadcastMsg] = useState(null);
   const [searching, setSearching] = useState(false);
@@ -113,9 +113,29 @@ export default function HomeScreen() {
   }, [connected]);
 
   const fetchStats = async () => {
+    if (!user?.token) return;
     try {
-      const res = await axios.get(`${API_BASE_URL}/friends/home-stats`);
-      setStats(res.data || { friends: 0, chats: 0 });
+      const headers = { Authorization: `Bearer ${user.token}` };
+      // Use existing endpoints — /friends/home-stats may not exist on backend
+      const [friendsRes, requestsRes] = await Promise.all([
+        axios
+          .get(`${API_BASE_URL}/friends`, { headers })
+          .catch(() => ({ data: [] })),
+        axios
+          .get(`${API_BASE_URL}/friends/requests`, { headers })
+          .catch(() => ({ data: [] })),
+      ]);
+      const friendsList = Array.isArray(friendsRes.data) ? friendsRes.data : [];
+      const pendingList = Array.isArray(requestsRes.data)
+        ? requestsRes.data
+        : [];
+      // Count unread: friends with unreadCount > 0
+      const unread = friendsList.filter((f) => f.unreadCount > 0).length;
+      setStats({
+        friends: friendsList.length,
+        pending: pendingList.length,
+        chats: unread,
+      });
     } catch {}
   };
 
@@ -166,17 +186,33 @@ export default function HomeScreen() {
             </View>
           )}
 
-          {/* ── Header (website: "WELCOME BACK" tag + "Hey, username 👋") ── */}
+          {/* ── Header ── */}
           <View style={s.welcomeTag}>
             <Animated.View
               style={[s.welcomeDot, { transform: [{ scale: pulseAnim }] }]}
             />
             <Text style={s.welcomeTagText}>WELCOME BACK</Text>
           </View>
-          <Text style={s.heroName}>
-            Hey,{" "}
-            <Text style={s.heroNameAccent}>{user?.username || "there"}</Text> 👋
-          </Text>
+
+          {/* Username row with inline online badge */}
+          <View style={s.heroRow}>
+            <Text style={s.heroName}>
+              Hey,{" "}
+              <Text style={s.heroNameAccent}>{user?.username || "there"}</Text>{" "}
+              👋
+            </Text>
+            {user && onlineCount > 0 && (
+              <View style={s.onlinePill}>
+                <Animated.View
+                  style={[
+                    s.onlinePillDot,
+                    { transform: [{ scale: pulseAnim }] },
+                  ]}
+                />
+                <Text style={s.onlinePillText}>{onlineCount} online</Text>
+              </View>
+            )}
+          </View>
           <Text style={s.heroSub}>
             Ready to connect with someone new today?
           </Text>
@@ -287,21 +323,18 @@ export default function HomeScreen() {
               messages and manage your friend list.
             </Text>
 
-            {/* Stats row (website style: FRIENDS / PENDING / UNREAD) */}
+            {/* Stats row — FRIENDS / PENDING / UNREAD with actual numbers */}
             <View style={s.friendsStatsRow}>
               {[
-                { label: "FRIENDS", value: stats.friends || 0 },
-                { label: "PENDING", value: 0 },
-                { label: "UNREAD", value: stats.chats || 0 },
+                { label: "FRIENDS", value: stats.friends },
+                { label: "PENDING", value: stats.pending },
+                { label: "UNREAD", value: stats.chats },
               ].map((st, i) => (
-                <View key={i} style={s.friendsStatItem}>
-                  <View style={s.friendsStatIconWrap}>
-                    <Ionicons
-                      name="people-outline"
-                      size={14}
-                      color={COLORS.purplePale}
-                    />
-                  </View>
+                <View
+                  key={i}
+                  style={[s.friendsStatItem, i < 2 && s.friendsStatBorder]}
+                >
+                  <Text style={s.friendsStatValue}>{st.value}</Text>
                   <Text style={s.friendsStatLabel}>{st.label}</Text>
                 </View>
               ))}
@@ -333,16 +366,6 @@ export default function HomeScreen() {
               </LinearGradient>
             </TouchableOpacity>
           </View>
-
-          {/* Online count */}
-          {user && (
-            <View style={s.onlineCard}>
-              <Animated.View
-                style={[s.onlineDot, { transform: [{ scale: pulseAnim }] }]}
-              />
-              <Text style={s.onlineText}>{onlineCount} online right now</Text>
-            </View>
-          )}
 
           {/* Premium upsell */}
           {user && !user.isPremium && (
@@ -477,14 +500,42 @@ const s = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 0.8,
   },
+  heroRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 6,
+  },
   heroName: {
     fontSize: 26,
     fontWeight: "800",
     color: "#fff",
     letterSpacing: -0.5,
-    marginBottom: 6,
   },
   heroNameAccent: { color: COLORS.purplePale },
+  onlinePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "rgba(74,222,128,0.1)",
+    borderWidth: 1,
+    borderColor: "rgba(74,222,128,0.22)",
+    borderRadius: 20,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+  },
+  onlinePillDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.green,
+  },
+  onlinePillText: {
+    fontSize: 11,
+    color: COLORS.green,
+    fontWeight: "700",
+  },
   heroSub: { fontSize: 13, color: COLORS.textMuted, marginBottom: SPACING.xl },
 
   // ── Section Cards (website style) ──
@@ -604,25 +655,34 @@ const s = StyleSheet.create({
   // ── Friends Card stats ──
   friendsStatsRow: {
     flexDirection: "row",
-    gap: SPACING.sm,
     marginBottom: SPACING.lg,
-  },
-  friendsStatItem: {
-    flex: 1,
     backgroundColor: "rgba(255,255,255,0.03)",
     borderRadius: RADIUS.md,
     borderWidth: 1,
     borderColor: COLORS.border,
-    paddingVertical: 12,
+    overflow: "hidden",
+  },
+  friendsStatItem: {
+    flex: 1,
+    paddingVertical: 14,
     alignItems: "center",
-    gap: 5,
+    gap: 4,
+  },
+  friendsStatBorder: {
+    borderRightWidth: 1,
+    borderRightColor: COLORS.border,
+  },
+  friendsStatValue: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#fff",
   },
   friendsStatIconWrap: {},
   friendsStatLabel: {
     fontSize: 10,
     color: COLORS.textMuted,
     fontWeight: "700",
-    letterSpacing: 0.5,
+    letterSpacing: 0.6,
   },
 
   // ── View Friends Button ──
@@ -634,26 +694,6 @@ const s = StyleSheet.create({
     justifyContent: "center",
   },
   viewFriendsBtnText: { color: "#fff", fontSize: 14, fontWeight: "700" },
-
-  // ── Online card ──
-  onlineCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: "rgba(74,222,128,0.06)",
-    borderRadius: RADIUS.md,
-    borderWidth: 1,
-    borderColor: "rgba(74,222,128,0.15)",
-    padding: SPACING.md,
-    marginBottom: SPACING.lg,
-  },
-  onlineDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.green,
-  },
-  onlineText: { fontSize: 13, color: COLORS.green, fontWeight: "600" },
 
   // ── Premium banner ──
   premiumBanner: {

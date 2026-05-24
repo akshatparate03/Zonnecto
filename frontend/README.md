@@ -39,6 +39,6 @@ npm start
 git status
 git init
 git add .
-git commit -m "SEO Optimized"
+git commit -m "APK File Build"
 git pull origin main
 git push origin main

@@ -33,6 +33,7 @@
     "react-native-screens": "~3.31.0",
     "react-native-svg": "15.2.0",
     "react-native-toast-message": "^2.2.0",
+    "react-native-webview": "13.8.6",
     "sockjs-client": "^1.6.1",
     "text-encoding": "^0.7.0",
     "zustand": "^4.5.0"

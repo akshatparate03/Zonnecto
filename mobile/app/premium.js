@@ -1,5 +1,5 @@
-// app/premium.js — Premium Screen (Razorpay SDK issue fixed)
-import React, { useState } from "react";
+// app/premium.js
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,10 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  Modal,
+  ActivityIndicator,
 } from "react-native";
+import { WebView } from "react-native-webview";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -19,6 +22,9 @@ import { API_BASE_URL } from "../src/constants/api";
 import Toast from "react-native-toast-message";
 
 const { width } = Dimensions.get("window");
+
+// ─── Razorpay Key (same as website + backend) ────────────────────────────────
+const RAZORPAY_KEY_ID = "rzp_test_SmYLU6W8NbDdEc";
 
 const PLANS = [
   {
@@ -79,14 +85,14 @@ const PLANS = [
     id: "ELITE",
     name: "Elite",
     price: "₹300",
-    period: "/ 2 years",
-    durationDays: 730,
+    period: "/ 1 year",
+    durationDays: 360,
     amountPaise: 30000,
     color: "#4ade80",
     tag: "LIFETIME DEAL",
     features: [
       "All Pro features",
-      "2 years of access",
+      "1 year of access",
       "Lifetime priority badge",
       "Direct support line",
       "Free future upgrades",
@@ -119,6 +125,171 @@ const FEATURES = [
   },
 ];
 
+// ─── Razorpay HTML (same as website checkout.js flow) ────────────────────────
+function buildRazorpayHtml({
+  orderId,
+  keyId,
+  amount,
+  planName,
+  period,
+  email,
+  name,
+}) {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #070710;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: -apple-system, sans-serif;
+    }
+    .loader {
+      text-align: center;
+      color: rgba(255,255,255,0.5);
+      font-size: 14px;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid rgba(139,92,246,0.3);
+      border-top-color: #a855f7;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="loader">
+    <div class="spinner"></div>
+    <p>Opening Razorpay...</p>
+  </div>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    function openRazorpay() {
+      var options = {
+        key: "${keyId}",
+        amount: ${amount},
+        currency: "INR",
+        name: "Zonnecto",
+        description: "${planName} Plan — ${period}",
+        image: "https://zonnecto.netlify.app/Zonnecto.svg",
+        order_id: "${orderId}",
+        handler: function(response) {
+          // Payment successful → send result back to React Native
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: "PAYMENT_SUCCESS",
+            razorpayOrderId: response.razorpay_order_id,
+            razorpayPaymentId: response.razorpay_payment_id,
+            razorpaySignature: response.razorpay_signature,
+          }));
+        },
+        prefill: {
+          email: "${email}",
+          name: "${name}",
+          contact: "",
+        },
+        theme: {
+          color: "#7c3aed",
+          backdrop_color: "rgba(7,7,16,0.85)",
+        },
+        modal: {
+          ondismiss: function() {
+            // User closed the Razorpay modal
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: "PAYMENT_CANCELLED",
+            }));
+          },
+          animation: true,
+        },
+      };
+      var rzp = new Razorpay(options);
+      rzp.on("payment.failed", function(response) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: "PAYMENT_FAILED",
+          error: response.error.description || "Payment failed",
+        }));
+      });
+      rzp.open();
+    }
+
+    // Wait for Razorpay script to load
+    if (window.Razorpay) {
+      openRazorpay();
+    } else {
+      document.querySelector("script[src*='razorpay']").addEventListener("load", openRazorpay);
+      document.querySelector("script[src*='razorpay']").addEventListener("error", function() {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: "PAYMENT_FAILED",
+          error: "Razorpay failed to load. Check internet connection.",
+        }));
+      });
+    }
+  </script>
+</body>
+</html>`;
+}
+
+// ─── Razorpay WebView Modal ───────────────────────────────────────────────────
+function RazorpayModal({ visible, html, onMessage, onClose }) {
+  const [webLoading, setWebLoading] = useState(true);
+
+  return (
+    <Modal
+      visible={visible}
+      transparent={false}
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={{ flex: 1, backgroundColor: "#070710" }}>
+        {/* Header */}
+        <View style={rzStyles.header}>
+          <TouchableOpacity onPress={onClose} style={rzStyles.closeBtn}>
+            <Ionicons name="close" size={22} color="#fff" />
+          </TouchableOpacity>
+          <Text style={rzStyles.headerTitle}>Secure Payment</Text>
+          <View style={rzStyles.secureBadge}>
+            <Ionicons name="lock-closed" size={11} color={COLORS.green} />
+            <Text style={rzStyles.secureText}>Razorpay</Text>
+          </View>
+        </View>
+
+        {webLoading && (
+          <View style={rzStyles.webLoader}>
+            <ActivityIndicator size="large" color={COLORS.purplePale} />
+            <Text style={rzStyles.webLoaderText}>
+              Loading payment gateway...
+            </Text>
+          </View>
+        )}
+
+        <WebView
+          source={{ html }}
+          style={{ flex: 1, backgroundColor: "#070710" }}
+          onLoadEnd={() => setWebLoading(false)}
+          onMessage={onMessage}
+          javaScriptEnabled
+          domStorageEnabled
+          mixedContentMode="compatibility"
+          allowsInlineMediaPlayback
+          mediaPlaybackRequiresUserAction={false}
+          originWhitelist={["*"]}
+        />
+      </View>
+    </Modal>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function PremiumScreen() {
   const { user, refreshUserProfile } = useAuth();
   const router = useRouter();
@@ -128,7 +299,12 @@ export default function PremiumScreen() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  // ─── FIX: Razorpay SDK nahi hai mobile pe, directly activate endpoint use karo ───
+  // Razorpay WebView state
+  const [rzHtml, setRzHtml] = useState("");
+  const [rzModalVisible, setRzModalVisible] = useState(false);
+  const currentPlanRef = useRef(null);
+  const tokenRef = useRef(null);
+
   const handleGetPlan = async (plan) => {
     if (!user) {
       router.push("/(auth)/login");
@@ -136,45 +312,55 @@ export default function PremiumScreen() {
     }
     setError("");
     setLoading(true);
-    const headers = { Authorization: `Bearer ${user.token}` };
+    const token = user.token;
+    tokenRef.current = token;
+    const headers = { Authorization: `Bearer ${token}` };
 
     try {
-      // Step 1: create-order try karo
-      // Agar Razorpay keys configured hain → order milega → Razorpay SDK se payment
-      // Agar placeholder/not configured → 500/BAD_REQUEST → fallback to activate
-      let orderData = null;
-      try {
-        const orderRes = await axios.post(
-          `${API_BASE_URL}/payment/create-order`,
-          {
-            planId: plan.id,
-            durationDays: plan.durationDays,
-            amount: plan.amountPaise,
-          },
-          { headers },
-        );
-        orderData = orderRes.data;
-      } catch (orderErr) {
-        const status = orderErr.response?.status;
-        const errMsg =
-          orderErr.response?.data?.error ||
-          orderErr.response?.data?.message ||
-          "";
-        const isNotConfigured =
-          status === 500 ||
-          status === 400 ||
-          errMsg.toLowerCase().includes("authentication") ||
-          errMsg.toLowerCase().includes("placeholder") ||
-          errMsg.toLowerCase().includes("bad_request") ||
-          errMsg.toLowerCase().includes("razorpay") ||
-          errMsg.toLowerCase().includes("key");
+      // Step 1: Create Razorpay order on backend (same as website)
+      const orderRes = await axios.post(
+        `${API_BASE_URL}/payment/create-order`,
+        {
+          planId: plan.id,
+          durationDays: plan.durationDays,
+          amount: plan.amountPaise,
+        },
+        { headers },
+      );
+      const { orderId, keyId } = orderRes.data;
 
-        if (isNotConfigured) {
-          // ─── Razorpay not configured → directly activate karo (dev/demo mode) ───
+      // Step 2: Build Razorpay HTML and open WebView modal
+      currentPlanRef.current = plan;
+      const html = buildRazorpayHtml({
+        orderId,
+        keyId: keyId || RAZORPAY_KEY_ID,
+        amount: plan.amountPaise,
+        planName: plan.name,
+        period: plan.period,
+        email: user.email || "",
+        name: user.fullName || user.username || "",
+      });
+      setRzHtml(html);
+      setRzModalVisible(true);
+      setLoading(false);
+    } catch (err) {
+      // Agar backend order create nahi kar paya (test env) → direct activate
+      const status = err.response?.status;
+      const errMsg =
+        err.response?.data?.error || err.response?.data?.message || "";
+      const isFallback =
+        status === 500 ||
+        status === 400 ||
+        errMsg.toLowerCase().includes("authentication") ||
+        errMsg.toLowerCase().includes("bad_request");
+
+      if (isFallback) {
+        // Dev/test mode: direct activate
+        try {
           const activateRes = await axios.post(
             `${API_BASE_URL}/payment/activate`,
             { planId: plan.id, durationDays: plan.durationDays },
-            { headers },
+            { headers: { Authorization: `Bearer ${user.token}` } },
           );
           if (activateRes.data?.success || activateRes.status === 200) {
             await refreshUserProfile();
@@ -185,53 +371,75 @@ export default function PremiumScreen() {
               text2: `${plan.name} plan is now active`,
             });
           }
-          setLoading(false);
-          return;
+        } catch {
+          setError("Something went wrong. Please try again.");
         }
-        // Razorpay configured lekin alag error → throw karo
-        throw orderErr;
+      } else {
+        setError(errMsg || "Failed to create payment order. Try again.");
       }
-
-      // Step 2: orderData mila → Razorpay SDK available nahi hai React Native pe by default
-      // Jab tak real Razorpay RN SDK install nahi hota, activate fallback use karo
-      // TODO: Install react-native-razorpay package aur yahan Razorpay.open() call karo
-      //
-      // Example (react-native-razorpay install ke baad):
-      // import RazorpayCheckout from 'react-native-razorpay';
-      // const paymentData = await RazorpayCheckout.open({
-      //   key: orderData.keyId,
-      //   order_id: orderData.orderId,
-      //   amount: plan.amountPaise,
-      //   currency: 'INR',
-      //   name: 'Zonnecto',
-      //   description: `${plan.name} Plan`,
-      //   prefill: { email: user.email || '' },
-      // });
-      // Then verify: await axios.post(`${API_BASE_URL}/payment/verify`, { ...paymentData, planId: plan.id, durationDays: plan.durationDays }, { headers });
-
-      // Abhi ke liye: activate karo
-      const activateRes = await axios.post(
-        `${API_BASE_URL}/payment/activate`,
-        { planId: plan.id, durationDays: plan.durationDays },
-        { headers },
-      );
-      if (activateRes.data?.success || activateRes.status === 200) {
-        await refreshUserProfile();
-        setSuccess(true);
-        Toast.show({ type: "success", text1: "⭐ Premium Activated!" });
-      }
-    } catch (e) {
-      const msg =
-        e.response?.data?.error ||
-        e.response?.data?.message ||
-        "Something went wrong. Please try again.";
-      setError(msg);
-      Toast.show({ type: "error", text1: "Failed", text2: msg });
-    } finally {
       setLoading(false);
     }
   };
 
+  // ── Handle messages from Razorpay WebView ────────────────────────────────
+  const handleWebViewMessage = async (event) => {
+    let data;
+    try {
+      data = JSON.parse(event.nativeEvent.data);
+    } catch {
+      return;
+    }
+
+    const plan = currentPlanRef.current;
+    const token = tokenRef.current;
+    const headers = { Authorization: `Bearer ${token}` };
+
+    if (data.type === "PAYMENT_SUCCESS") {
+      setRzModalVisible(false);
+      setLoading(true);
+      // Step 3: Verify payment on backend (same as website)
+      try {
+        const verifyRes = await axios.post(
+          `${API_BASE_URL}/payment/verify`,
+          {
+            razorpayOrderId: data.razorpayOrderId,
+            razorpayPaymentId: data.razorpayPaymentId,
+            razorpaySignature: data.razorpaySignature,
+            planId: plan.id,
+            durationDays: plan.durationDays,
+          },
+          { headers },
+        );
+        if (verifyRes.data?.success) {
+          await refreshUserProfile();
+          setSuccess(true);
+          Toast.show({
+            type: "success",
+            text1: "⭐ Payment Successful!",
+            text2: `${plan.name} plan activated`,
+          });
+        }
+      } catch {
+        setError("Payment verification failed. Contact support.");
+        Toast.show({
+          type: "error",
+          text1: "Verification failed",
+          text2: "Contact support with your payment ID",
+        });
+      } finally {
+        setLoading(false);
+      }
+    } else if (data.type === "PAYMENT_CANCELLED") {
+      setRzModalVisible(false);
+      Toast.show({ type: "info", text1: "Payment cancelled" });
+    } else if (data.type === "PAYMENT_FAILED") {
+      setRzModalVisible(false);
+      setError(data.error || "Payment failed. Please try again.");
+      Toast.show({ type: "error", text1: "Payment Failed", text2: data.error });
+    }
+  };
+
+  // ── Success Screen ────────────────────────────────────────────────────────
   if (success) {
     return (
       <View
@@ -283,6 +491,14 @@ export default function PremiumScreen() {
     <View style={[s.container, { paddingTop: insets.top }]}>
       <View style={s.orb1} />
       <View style={s.orb2} />
+
+      {/* Razorpay WebView Modal */}
+      <RazorpayModal
+        visible={rzModalVisible}
+        html={rzHtml}
+        onMessage={handleWebViewMessage}
+        onClose={() => setRzModalVisible(false)}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -409,9 +625,11 @@ export default function PremiumScreen() {
                       end={{ x: 1, y: 0 }}
                       style={s.getPlanBtn}
                     >
-                      <Text style={s.btnText}>
-                        {loading ? "Processing..." : `Get ${plan.name} →`}
-                      </Text>
+                      {loading ? (
+                        <ActivityIndicator color="#fff" size="small" />
+                      ) : (
+                        <Text style={s.btnText}>Get {plan.name} →</Text>
+                      )}
                     </LinearGradient>
                   </TouchableOpacity>
                 )}
@@ -449,6 +667,49 @@ export default function PremiumScreen() {
   );
 }
 
+// ── Razorpay Modal Styles ─────────────────────────────────────────────────────
+const rzStyles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: SPACING.lg,
+    paddingTop: 52,
+    paddingBottom: SPACING.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    backgroundColor: "#0a0a18",
+  },
+  closeBtn: { padding: 4 },
+  headerTitle: { fontSize: 16, fontWeight: "700", color: "#fff" },
+  secureBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: COLORS.greenBg,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: RADIUS.full,
+    borderWidth: 1,
+    borderColor: COLORS.greenBorder,
+  },
+  secureText: { fontSize: 11, color: COLORS.green, fontWeight: "600" },
+  webLoader: {
+    position: "absolute",
+    top: 120,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 10,
+  },
+  webLoaderText: {
+    color: COLORS.textMuted,
+    fontSize: 13,
+    marginTop: SPACING.sm,
+  },
+});
+
+// ── Main Styles ───────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
   orb1: {

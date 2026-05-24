@@ -19,6 +19,10 @@ import axios from "axios";
 import { COLORS, SPACING, RADIUS } from "../../src/constants/theme";
 import { API_BASE_URL } from "../../src/constants/api";
 
+// ✅ Apps Script URL — sends reset link email via Gmail (same as website)
+const APPS_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbx6JXFEkyXVZzqJDF9BLQJv390-ALPf0EptygsdqUPeCawKpg-eB0oegvuBWzDfB18/exec";
+
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -35,9 +39,21 @@ export default function ForgotPasswordScreen() {
     setError("");
     setLoading(true);
     try {
-      await axios.post(`${API_BASE_URL}/auth/forgot-password`, {
+      // Step 1: Backend generates reset token
+      const res = await axios.post(`${API_BASE_URL}/auth/forgot-password`, {
         email: email.trim(),
       });
+      const resetToken = res.data?.token;
+
+      // Step 2: Send reset link email via Apps Script (same as website)
+      if (resetToken) {
+        const origin = "https://zonnecto.netlify.app";
+        fetch(
+          `${APPS_SCRIPT_URL}?action=sendResetLink&email=${encodeURIComponent(email.trim())}&token=${encodeURIComponent(resetToken)}&origin=${encodeURIComponent(origin)}`,
+          { mode: "no-cors" },
+        ).catch(() => {});
+      }
+
       setSent(true);
     } catch (err) {
       setError(err.response?.data?.error || "Something went wrong");

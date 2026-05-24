@@ -21,6 +21,10 @@ import { COLORS, SPACING, RADIUS } from "../../src/constants/theme";
 import { API_BASE_URL } from "../../src/constants/api";
 import Toast from "react-native-toast-message";
 
+// ✅ Apps Script URL — same as website — handles OTP emails via Gmail
+const APPS_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbx6JXFEkyXVZzqJDF9BLQJv390-ALPf0EptygsdqUPeCawKpg-eB0oegvuBWzDfB18/exec";
+
 const STEPS = ["Verify Email", "Account Setup", "Profile"];
 const PW_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,20}$/;
 
@@ -60,14 +64,26 @@ export default function RegisterScreen() {
     }
     setSendingOtp(true);
     try {
+      // Step 1: Backend generates OTP and returns it
       const res = await axios.post(`${API_BASE_URL}/auth/send-otp`, {
         email: email.trim(),
       });
+      const generatedOtp = res.data.otp;
+
+      // Step 2: Send OTP email via Apps Script (same as website)
+      // Fire-and-forget — no-cors mode
+      const name = email.trim().split("@")[0];
+      fetch(
+        `${APPS_SCRIPT_URL}?action=sendOtp&email=${encodeURIComponent(email.trim())}&otp=${encodeURIComponent(generatedOtp)}&name=${encodeURIComponent(name)}`,
+        { mode: "no-cors" },
+      ).catch(() => {});
+
       setOtpSent(true);
+      // ✅ Don't show OTP in Toast — it goes to email now
       Toast.show({
         type: "success",
         text1: "OTP Sent!",
-        text2: `OTP: ${res.data.otp}`,
+        text2: "Check your email for the 6-digit code.",
       });
     } catch (err) {
       Toast.show({
