@@ -39,6 +39,6 @@ npm start
 git status
 git init
 git add .
-git commit -m "APK File Build"
+git commit -m "User Count Telegram Support"
 git pull origin main
 git push origin main
