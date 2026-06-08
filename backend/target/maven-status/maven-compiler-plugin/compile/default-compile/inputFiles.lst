@@ -15,6 +15,7 @@ D:\Projects\Full Stack Projects\Zonnecto\backend\src\main\java\com\zonnecto\repo
 D:\Projects\Full Stack Projects\Zonnecto\backend\src\main\java\com\zonnecto\repository\UserRepository.java
 D:\Projects\Full Stack Projects\Zonnecto\backend\src\main\java\com\zonnecto\config\WebMvcConfig.java
 D:\Projects\Full Stack Projects\Zonnecto\backend\src\main\java\com\zonnecto\security\SecurityConfig.java
+D:\Projects\Full Stack Projects\Zonnecto\backend\src\main\java\com\zonnecto\service\TelegramService.java
 D:\Projects\Full Stack Projects\Zonnecto\backend\src\main\java\com\zonnecto\controller\PremiumController.java
 D:\Projects\Full Stack Projects\Zonnecto\backend\src\main\java\com\zonnecto\dto\MessageDTO.java
 D:\Projects\Full Stack Projects\Zonnecto\backend\src\main\java\com\zonnecto\dto\UserDTO.java

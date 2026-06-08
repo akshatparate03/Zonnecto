@@ -92,6 +92,7 @@ com\zonnecto\controller\HealthController.class
 com\zonnecto\security\SecurityConfig.class
 com\zonnecto\controller\ChatController.class
 com\zonnecto\repository\UserRepository.class
+com\zonnecto\service\TelegramService.class
 com\zonnecto\service\AuthService.class
 com\zonnecto\controller\FriendsController$SearchResultDTO.class
 com\zonnecto\dto\AuthResponse.class

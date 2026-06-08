@@ -1,0 +1,160 @@
+### For Deployment
+
+spring:
+application:
+name: zonnecto-backend
+
+datasource:
+url: "jdbc:postgresql://ep-muddy-river-ao69iljm-pooler.c-2.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+username: neondb_owner
+password: npg_sVhW3Ma9PDtf
+driver-class-name: org.postgresql.Driver
+hikari:
+connection-timeout: 60000
+initialization-fail-timeout: 60000
+maximum-pool-size: 3
+minimum-idle: 1
+idle-timeout: 300000
+max-lifetime: 600000
+keepalive-time: 30000
+connection-test-query: SELECT 1
+
+jpa:
+hibernate:
+ddl-auto: update
+show-sql: false
+open-in-view: false
+properties:
+hibernate:
+format_sql: true
+
+data:
+redis:
+host: amazed-guinea-119983.upstash.io
+port: 6379
+password: gQAAAAAAAdSvAAIgcDFmMDZmMGZmY2ZiMjI0OGEyODEyMzQ2OTFmNDMyYTFmYw
+timeout: 60000
+ssl:
+enabled: true
+
+servlet:
+multipart:
+enabled: true
+max-file-size: 10MB
+max-request-size: 10MB
+
+sql:
+init:
+mode: never
+
+server:
+port: 8080
+servlet:
+context-path: /api
+
+jwt:
+secret: ZonnectoSuperSecret@2026$ZoneOfConnections
+expiration: 3600000
+refresh-expiration: 604800000
+
+razorpay:
+key:
+id: rzp_test_SmYLU6W8NbDdEc
+secret: wfdf51zCkooabhRDL3CXVHbW
+
+logging:
+level:
+root: INFO
+com.zonnecto: DEBUG
+org.springframework.security: INFO
+
+apps:
+script:
+url: http://zonnecto-backend.onrender.com/api/health
+
+telegram:
+bot:
+token: ${TELEGRAM_BOT_TOKEN:}
+chat:
+id: ${TELEGRAM_CHAT_ID:}
+
+### For Local Server
+
+spring:
+application:
+name: zonnecto-backend
+
+datasource:
+url: "jdbc:postgresql://localhost:5432/zonnecto"
+username: postgres
+password: postgres
+driver-class-name: org.postgresql.Driver
+hikari:
+connection-timeout: 30000
+initialization-fail-timeout: 30000
+maximum-pool-size: 5
+minimum-idle: 1
+idle-timeout: 300000
+max-lifetime: 600000
+keepalive-time: 30000
+connection-test-query: SELECT 1
+
+jpa:
+hibernate:
+ddl-auto: update
+show-sql: true
+open-in-view: false
+properties:
+hibernate:
+format_sql: true
+dialect: org.hibernate.dialect.PostgreSQLDialect
+
+data:
+redis:
+host: localhost
+port: 6379
+password:
+timeout: 10000
+ssl:
+enabled: false
+
+servlet:
+multipart:
+enabled: true
+max-file-size: 10MB
+max-request-size: 10MB
+
+sql:
+init:
+mode: never
+
+server:
+port: 8080
+servlet:
+context-path: /api
+
+jwt:
+secret: ZonnectoSuperSecret@2026$ZoneOfConnections
+expiration: 3600000
+refresh-expiration: 604800000
+
+razorpay:
+key:
+id: rzp_test_SmYLU6W8NbDdEc
+secret: wfdf51zCkooabhRDL3CXVHbW
+
+logging:
+level:
+root: INFO
+com.zonnecto: DEBUG
+org.springframework.security: INFO
+
+apps:
+script:
+url: http://localhost:8080/api/health
+
+telegram:
+bot:
+token: ${TELEGRAM_BOT_TOKEN:}
+chat:
+id: ${TELEGRAM_CHAT_ID:}

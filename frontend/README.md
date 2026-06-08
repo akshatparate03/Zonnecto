@@ -33,12 +33,15 @@ npm install --legacy-peer-deps
 npx expo install expo-linking
 npm install
 npm start
+# Download Link Reset
+cd mobile
+eas build --platform android --profile preview
 
 # GitHub Push Commonds
 
 git status
 git init
 git add .
-git commit -m "User Count Telegram Support"
+git commit -m "Final"
 git pull origin main
 git push origin main

@@ -391,7 +391,7 @@ export function ZnNavbar({ onlineCount, onProfileClick, onPreferenceClick }) {
         <div className="zn-drawer-section">
           <div className="zn-drawer-section-label">App</div>
           <a
-            href="https://expo.dev/accounts/akshatparate03/projects/zonnecto/builds/41701ed8-d93e-45c7-9652-8194bf24dd6a"
+            href="https://expo.dev/accounts/akshatparate03/projects/zonnecto/builds/3a36750b-7a5e-42e1-b10c-76d9d8e82999"
             className="zn-drawer-btn-apk"
             download="Zonnecto.apk"
             target="_blank"
