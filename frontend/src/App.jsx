@@ -24,6 +24,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import AdminDashboard from "./pages/AdminDashboard";
 import Premium from "./pages/Premium";
+import ZnChatbot from "./components/ZnChatbot";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -42,6 +43,7 @@ function App() {
       <AuthProvider>
         <WebSocketProvider>
           <ScrollToTop />
+          <ZnChatbot />
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Home />} />

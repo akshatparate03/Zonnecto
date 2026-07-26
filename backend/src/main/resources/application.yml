@@ -69,9 +69,9 @@ logging:
 apps:
   script:
     url: http://zonnecto-backend.onrender.com/api/health
+    notify-url: ${APPS_SCRIPT_NOTIFY_URL:}
 
-telegram:
-  bot:
-    token: ${TELEGRAM_BOT_TOKEN:}
-  chat:
-    id: ${TELEGRAM_CHAT_ID:}
+openrouter:
+  api:
+    key: ${OPENROUTER_API_KEY:}
+  model: ${OPENROUTER_MODEL:meta-llama/llama-3.1-70b-instruct}
