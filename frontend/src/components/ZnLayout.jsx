@@ -105,16 +105,6 @@ export function ZnNavbar({ onlineCount, onProfileClick, onPreferenceClick }) {
         .zn-nav-btn-danger:hover { background: rgba(239,68,68,0.18); }
         .zn-nav-btn-primary { background: linear-gradient(135deg,#7c3aed,#6366f1); color: #fff; border: none; }
         .zn-nav-btn-primary:hover { opacity: 0.88; }
-        .zn-nav-btn-apk {
-          display: flex; align-items: center; gap: 0.35rem;
-          padding: 0.38rem 0.9rem; border-radius: 8px; border: none; cursor: pointer;
-          font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
-          background: linear-gradient(135deg, #16a34a, #15803d);
-          color: #fff; text-decoration: none; white-space: nowrap;
-          transition: all 0.2s; box-shadow: 0 0 12px rgba(22,163,74,0.3);
-        }
-        .zn-nav-btn-apk:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(22,163,74,0.4); }
-        .zn-nav-btn-apk svg { flex-shrink: 0; }
 
         /* Hamburger */
         .zn-hamburger {
@@ -182,15 +172,6 @@ export function ZnNavbar({ onlineCount, onProfileClick, onPreferenceClick }) {
         .zn-drawer-btn-admin:hover { background: rgba(139,92,246,0.2); }
         .zn-drawer-btn-yellow { background: rgba(250,204,21,0.08); color: #fbbf24; border: 1px solid rgba(250,204,21,0.25); font-weight: 600; }
         .zn-drawer-btn-yellow:hover { background: rgba(250,204,21,0.14); }
-        .zn-drawer-btn-apk {
-          display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-          width: 100%; padding: 0.75rem; border-radius: 10px; border: none; cursor: pointer;
-          font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600;
-          background: linear-gradient(135deg, #16a34a, #15803d);
-          color: #fff; text-decoration: none; margin-bottom: 0.5rem;
-          transition: all 0.2s; box-shadow: 0 0 14px rgba(22,163,74,0.25);
-        }
-        .zn-drawer-btn-apk:hover { opacity: 0.9; }
         .zn-drawer-online {
           display: flex; align-items: center; justify-content: center; gap: 0.5rem;
           background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.18);
@@ -244,31 +225,6 @@ export function ZnNavbar({ onlineCount, onProfileClick, onPreferenceClick }) {
               {onlineCount !== undefined ? `${onlineCount} online` : "Online"}
             </div>
           )}
-          {/* ── Download APK button — always visible ── */}
-          <a
-            href="https://expo.dev/accounts/akshatparate03/projects/zonnecto/builds/41701ed8-d93e-45c7-9652-8194bf24dd6a"
-            className="zn-nav-btn-apk"
-            download="Zonnecto.apk"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Download Zonnecto Android App"
-          >
-            <svg
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            Download APK
-          </a>
 
           {user ? (
             <>
@@ -387,33 +343,6 @@ export function ZnNavbar({ onlineCount, onProfileClick, onPreferenceClick }) {
               {link.label}
             </Link>
           ))}
-        </div>
-        <div className="zn-drawer-section">
-          <div className="zn-drawer-section-label">App</div>
-          <a
-            href="https://expo.dev/accounts/akshatparate03/projects/zonnecto/builds/3a36750b-7a5e-42e1-b10c-76d9d8e82999"
-            className="zn-drawer-btn-apk"
-            download="Zonnecto.apk"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => setMenuOpen(false)}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
-            📱 Download APK
-          </a>
         </div>
         <div className="zn-drawer-divider" />
         {user ? (
