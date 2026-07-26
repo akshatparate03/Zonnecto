@@ -68,10 +68,10 @@ logging:
 
 apps:
   script:
-    url: http://zonnecto-backend.onrender.com/api/health
+    url: https://zonnecto-backend-xp5e.onrender.com/api/health
     notify-url: ${APPS_SCRIPT_NOTIFY_URL:}
 
 openrouter:
   api:
     key: ${OPENROUTER_API_KEY:}
-  model: ${OPENROUTER_MODEL:meta-llama/llama-3.1-70b-instruct}
+  model: ${OPENROUTER_MODEL:openai/gpt-oss-20b:free}
