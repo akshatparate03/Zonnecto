@@ -3,9 +3,9 @@ spring:
     name: zonnecto-backend
 
   datasource:
-    url: "jdbc:postgresql://ep-muddy-river-ao69iljm-pooler.c-2.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    url: "jdbc:postgresql://ep-crimson-sunset-azmxlqnf-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
     username: neondb_owner
-    password: npg_sVhW3Ma9PDtf
+    password: npg_wVlzP0EFiy4U
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 60000
@@ -16,7 +16,7 @@ spring:
       max-lifetime: 600000
       keepalive-time: 30000
       connection-test-query: SELECT 1
-
+      
   jpa:
     hibernate:
       ddl-auto: update
