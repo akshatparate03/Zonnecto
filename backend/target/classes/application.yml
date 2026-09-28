@@ -3,9 +3,9 @@ spring:
     name: zonnecto-backend
 
   datasource:
-    url: "jdbc:postgresql://ep-flat-surf-azcn0zep-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+    url: "jdbc:postgresql://ep-twilight-rain-b3eizhbf-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
     username: neondb_owner
-    password: npg_Z3LrvmBfJE1h
+    password: npg_3wWciQg5ODjT
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 60000
@@ -68,7 +68,7 @@ logging:
 
 apps:
   script:
-    url: https://zonnecto-backend-xp5e.onrender.com/api/health
+    url: https://zonnecto-backend.onrender.com/api/health
     notify-url: ${APPS_SCRIPT_NOTIFY_URL:}
 
 openrouter:
