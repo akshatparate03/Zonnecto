@@ -42,6 +42,6 @@ eas build --platform android --profile preview
 git status
 git init
 git add .
-git commit -m "Final"
+git commit -m "Final Changes"
 git pull origin main
 git push origin main

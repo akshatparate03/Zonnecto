@@ -70,7 +70,7 @@ org.springframework.security: INFO
 
 apps:
 script:
-url: http://zonnecto-backend.onrender.com/api/health
+url: http://zonnecto-backend-tuio.onrender.com/api/health
 
 telegram:
 bot:

@@ -694,7 +694,7 @@ VITE_API_URL=http://localhost:8080/api
 ### Production Environment Variables (Netlify)
 
 ```env
-VITE_API_URL=https://zonnecto-backend.onrender.com/api
+VITE_API_URL=https://zonnecto-backend-tuio.onrender.com/api
 ```
 
 ---
@@ -713,7 +713,7 @@ npm run build
 # 3. Build command: npm run build
 # 4. Publish directory: dist
 # 5. Add env variables in Netlify dashboard
-#    VITE_API_URL=https://zonnecto-backend.onrender.com/api
+#    VITE_API_URL=https://zonnecto-backend-tuio.onrender.com/api
 
 # Live URL
 https://zonnecto.netlify.app
