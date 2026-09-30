@@ -75,7 +75,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/health/**").permitAll()
-                        .requestMatchers("/chatbot/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/user/active-count").permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()

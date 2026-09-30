@@ -3,9 +3,9 @@ spring:
     name: zonnecto-backend
 
   datasource:
-    url: "jdbc:postgresql://ep-divine-wind-b3rhs5cm-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-    username: neondb_owner
-    password: npg_QhtXT4dDrk1m
+    url: ${DATABASE_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 60000
@@ -28,12 +28,12 @@ spring:
 
   data:
     redis:
-      host: pro-mite-321637.upstash.io
-      port: 6379
-      password: gQAAAAAABOhlAAIgcDEwMDJjOTQ0ODBmNDI0YWM0OTZlMjkzMzNlZjQ0MzRkYQ
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
       timeout: 60000
       ssl:
-        enabled: true
+        enabled: ${REDIS_SSL:true}
 
   servlet:
     multipart:
@@ -46,32 +46,27 @@ spring:
       mode: never
 
 server:
-  port: 8080
+  port: ${PORT:8080}
   servlet:
     context-path: /api
 
 jwt:
-  secret: ZonnectoSuperSecret@2026$ZoneOfConnections
-  expiration: 3600000
-  refresh-expiration: 604800000
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:3600000}
+  refresh-expiration: ${REFRESH_EXPIRATION:604800000}
 
 razorpay:
   key:
-    id: rzp_test_SmYLU6W8NbDdEc
-    secret: wfdf51zCkooabhRDL3CXVHbW
+    id: ${RAZORPAY_KEY_ID}
+    secret: ${RAZORPAY_KEY_SECRET}
 
 logging:
   level:
     root: INFO
-    com.zonnecto: DEBUG
+    com.zonnecto: INFO
     org.springframework.security: INFO
 
 apps:
   script:
-    url: https://zonnecto-backend.onrender.com/api/health
+    url: ${APPS_SCRIPT_URL}
     notify-url: ${APPS_SCRIPT_NOTIFY_URL:}
-
-openrouter:
-  api:
-    key: ${OPENROUTER_API_KEY:}
-  model: ${OPENROUTER_MODEL:openai/gpt-oss-20b:free}
